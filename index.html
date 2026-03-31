@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AZEnergy — Catalogue Professionnel</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d1a;min-height:100vh;display:flex;align-items:center;justify-content:center;font-family:'Segoe UI',Arial,sans-serif;padding:24px}
+.card{background:linear-gradient(145deg,#1a1a2e,#16213e);border:1px solid rgba(212,168,71,.2);border-radius:20px;padding:48px 40px;max-width:640px;width:100%;text-align:center;box-shadow:0 24px 80px rgba(0,0,0,.5)}
+.logo{font-size:32px;font-weight:800;color:#D4A847;letter-spacing:2px;margin-bottom:4px}
+.logo span{color:#fff}
+.tagline{color:#888;font-size:13px;margin-bottom:40px;letter-spacing:1px;text-transform:uppercase}
+.divider{width:60px;height:2px;background:linear-gradient(90deg,transparent,#D4A847,transparent);margin:0 auto 40px}
+h1{color:#fff;font-size:20px;margin-bottom:10px;font-weight:600}
+.subtitle{color:#aaa;font-size:14px;margin-bottom:40px;line-height:1.6}
+.buttons{display:flex;flex-direction:column;gap:16px}
+.btn{display:flex;align-items:center;gap:16px;padding:20px 24px;border-radius:14px;text-decoration:none;transition:.2s;border:1px solid}
+.btn-primary{background:rgba(212,168,71,.1);border-color:rgba(212,168,71,.3);color:#fff}
+.btn-primary:hover{background:rgba(212,168,71,.18);border-color:#D4A847;transform:translateY(-2px);box-shadow:0 8px 30px rgba(212,168,71,.15)}
+.btn-secondary{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.1);color:#ccc}
+.btn-secondary:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.2);transform:translateY(-2px)}
+.btn-icon{font-size:28px;width:40px;text-align:center}
+.btn-info{text-align:left}
+.btn-title{font-size:15px;font-weight:700;display:block;margin-bottom:3px}
+.btn-desc{font-size:12px;opacity:.7}
+.badge{display:inline-block;background:rgba(212,168,71,.15);border:1px solid rgba(212,168,71,.3);color:#D4A847;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;margin-left:8px;vertical-align:middle;letter-spacing:.5px}
+.footer{margin-top:36px;color:#555;font-size:11px;line-height:1.8}
+@media(min-width:480px){.buttons{flex-direction:row}}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">AZ<span>Energy</span></div>
+  <div class="tagline">Catalogue Professionnel — 837 références</div>
+  <div class="divider"></div>
+  <h1>Choisissez votre vue catalogue</h1>
+  <p class="subtitle">Deux modes de consultation disponibles pour explorer l'ensemble de notre gamme batteries, piles et chargeurs.</p>
+  <div class="buttons">
+    <a href="catalogue.html" class="btn btn-primary">
+      <span class="btn-icon">📚</span>
+      <span class="btn-info">
+        <span class="btn-title">Catalogue Interactif <span class="badge">RECHERCHE</span></span>
+        <span class="btn-desc">Filtres, recherche, fiches produits détaillées — idéal sur écran</span>
+      </span>
+    </a>
+    <a href="catalogue-pdf-metiers.html" class="btn btn-secondary">
+      <span class="btn-icon">📄</span>
+      <span class="btn-info">
+        <span class="btn-title">Catalogue par Métier <span class="badge">PDF</span></span>
+        <span class="btn-desc">Vue organisée par profil — Auto, PL, Marine, Industrie, Bricolage</span>
+      </span>
+    </a>
+  </div>
+  <p class="footer">
+    Version preview — Usage interne uniquement<br>
+    AZEnergy © 2025
+  </p>
+</div>
+</body>
+</html>

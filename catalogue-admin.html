@@ -1,0 +1,1512 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Catalogue — AZ Energy</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+:root {
+  --bg: #f4f5f7;
+  --sidebar-bg: #1c2235;
+  --sidebar-hover: #2a3250;
+  --sidebar-active: #3d5af1;
+  --card: #ffffff;
+  --border: #e2e5ec;
+  --text: #1a1d2b;
+  --text2: #5a6278;
+  --text3: #8890a8;
+  --accent: #3d5af1;
+  --accent2: #0dcb8e;
+  --danger: #e84848;
+  --warn: #f5a623;
+  --radius: 8px;
+  --shadow: 0 2px 12px rgba(0,0,0,.08);
+  --input-bg: #f8f9fc;
+  --input-border: #d4d8e8;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+
+/* ── TOP BAR ── */
+#topbar{background:var(--sidebar-bg);color:#fff;padding:0 20px;height:54px;display:flex;align-items:center;gap:12px;flex-shrink:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+#topbar .logo{font-weight:700;font-size:15px;letter-spacing:.3px;color:#fff;opacity:.95;margin-right:4px}
+#topbar .logo span{color:#3d5af1}
+#topbar .sep{width:1px;height:24px;background:rgba(255,255,255,.15)}
+.tb-btn{display:flex;align-items:center;gap:7px;padding:7px 14px;border-radius:6px;border:none;cursor:pointer;font-size:13px;font-weight:500;transition:.15s;white-space:nowrap}
+.tb-btn.primary{background:var(--accent);color:#fff}.tb-btn.primary:hover{background:#2e49e0}
+.tb-btn.secondary{background:rgba(255,255,255,.12);color:#fff}.tb-btn.secondary:hover{background:rgba(255,255,255,.2)}
+.tb-btn.success{background:var(--accent2);color:#0a3a28}.tb-btn.success:hover{background:#0bb87f}
+.tb-btn.danger{background:var(--danger);color:#fff}.tb-btn.danger:hover{background:#c93838}
+.tb-btn.pdf-import{background:rgba(245,166,35,.18);color:#f5a623;border:1px solid rgba(245,166,35,.3)}.tb-btn.pdf-import:hover{background:rgba(245,166,35,.28)}
+.tb-btn:disabled{opacity:.4;cursor:not-allowed}
+#status{margin-left:auto;font-size:12px;color:rgba(255,255,255,.6);white-space:nowrap}
+#status.ok{color:#0dcb8e}#status.err{color:#ff7070}#status.info{color:#ffc947}
+
+/* ── TAB BAR ── */
+#tab-bar{background:#252e47;border-bottom:1px solid rgba(255,255,255,.08);padding:0 20px;display:flex;align-items:center;gap:4px;height:40px;flex-shrink:0}
+.tab-btn{padding:8px 16px;border-radius:6px 6px 0 0;border:none;background:transparent;color:rgba(255,255,255,.5);font-size:13px;font-weight:500;cursor:pointer;transition:.15s;display:flex;align-items:center;gap:7px}
+.tab-btn:hover{color:rgba(255,255,255,.8);background:rgba(255,255,255,.07)}
+.tab-btn.active{color:#fff;background:var(--bg);border-bottom:2px solid var(--accent)}
+
+/* ── MAIN LAYOUT (Products tab) ── */
+#tab-products{display:grid;grid-template-columns:300px 1fr;flex:1;overflow:hidden}
+#tab-metiers{display:none;flex:1;overflow:hidden;gap:0}
+#tab-metiers.active-tab{display:flex}
+#tab-products.active-tab{display:grid}
+
+/* ── SIDEBAR ── */
+#sidebar{background:var(--sidebar-bg);color:#e8eaf0;display:flex;flex-direction:column;overflow:hidden;border-right:1px solid rgba(255,255,255,.06)}
+#sidebar-header{padding:14px 14px 10px;flex-shrink:0}
+#search{width:100%;padding:8px 12px;border-radius:6px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.07);color:#fff;font-size:13px;outline:none}
+#search::placeholder{color:rgba(255,255,255,.35)}
+#search:focus{border-color:var(--accent);background:rgba(255,255,255,.1)}
+#filters{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+.f-sel{padding:6px 8px;border-radius:5px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.07);color:#e8eaf0;font-size:12px;outline:none;cursor:pointer}
+.f-sel option{background:#1c2235;color:#e8eaf0}
+.f-sel:focus{border-color:var(--accent)}
+#sidebar-stats{padding:6px 14px;font-size:11px;color:rgba(255,255,255,.4);flex-shrink:0;border-bottom:1px solid rgba(255,255,255,.06)}
+#product-list{flex:1;overflow-y:auto;padding:0 6px 12px}
+#product-list::-webkit-scrollbar{width:4px}
+#product-list::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:4px}
+.prod-item{padding:9px 10px;border-radius:6px;cursor:pointer;margin-bottom:2px;transition:.12s;display:flex;flex-direction:column;gap:2px}
+.prod-item:hover{background:var(--sidebar-hover)}
+.prod-item.active{background:var(--sidebar-active)}
+.prod-ref{font-size:12px;font-weight:600;color:#e8eaf0;font-family:'SF Mono',Consolas,monospace}
+.prod-desc{font-size:11px;color:rgba(255,255,255,.45);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.prod-meta{display:flex;gap:5px;margin-top:2px}
+.badge{font-size:9px;padding:2px 5px;border-radius:3px;font-weight:600;text-transform:uppercase;letter-spacing:.3px}
+.badge.bat{background:#1e3a5f;color:#6aadff}
+.badge.pil{background:#1e3d1e;color:#6de06d}
+.badge.ecl{background:#3d2a00;color:#ffb84d}
+.badge.cd{background:#2d1a3d;color:#c97dff}
+.badge.lub{background:#1a2d1a;color:#7de07d}
+.badge.new{background:#0d3a2a;color:#0dcb8e}
+.badge.promo{background:#3d1a00;color:#ff8c4d}
+.badge.epuise{background:#3d1a1a;color:#ff6060}
+
+/* ── EDITOR ── */
+#editor-wrap{overflow-y:auto;background:var(--bg);padding:24px 28px}
+#editor-wrap::-webkit-scrollbar{width:6px}
+#editor-wrap::-webkit-scrollbar-thumb{background:var(--border);border-radius:6px}
+#editor-placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:16px;color:var(--text3);font-size:14px}
+#editor-placeholder .big-icon{font-size:56px;opacity:.3}
+#editor{display:none}
+.editor-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;padding-bottom:16px;border-bottom:2px solid var(--border)}
+.editor-top h2{font-size:17px;font-weight:700;color:var(--text)}
+.editor-actions{display:flex;gap:8px}
+.section{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px;margin-bottom:16px}
+.section h3{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);margin-bottom:14px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-grid.cols3{grid-template-columns:1fr 1fr 1fr}
+.form-grid.cols1{grid-template-columns:1fr}
+.field{display:flex;flex-direction:column;gap:4px}
+.field.full{grid-column:1/-1}
+label{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.4px}
+input[type=text],input[type=number],textarea,select.fld{width:100%;padding:9px 12px;border-radius:6px;border:1px solid var(--input-border);background:var(--input-bg);color:var(--text);font-size:13px;outline:none;transition:.15s;font-family:inherit}
+input[type=text]:focus,input[type=number]:focus,textarea:focus,select.fld:focus{border-color:var(--accent);background:#fff;box-shadow:0 0 0 3px rgba(61,90,241,.1)}
+textarea{resize:vertical;min-height:64px}
+.check-row{display:flex;gap:20px;align-items:center}
+.check-item{display:flex;align-items:center;gap:7px;cursor:pointer}
+.check-item input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent);cursor:pointer}
+.check-item span{font-size:13px;color:var(--text2)}
+
+/* ── SPECS SECTION ── */
+#specs-table{width:100%;border-collapse:collapse}
+#specs-table th{font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);text-align:left;padding:0 0 8px;font-weight:600}
+#specs-table td{padding:3px 4px 3px 0;vertical-align:middle}
+#specs-table td:last-child{width:32px;text-align:center}
+.spec-key-input{width:140px;font-family:'SF Mono',Consolas,monospace;font-size:12px}
+.spec-val-input{font-size:13px}
+.spec-del{width:26px;height:26px;border-radius:5px;border:none;background:transparent;color:var(--text3);cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:.12s}
+.spec-del:hover{background:#ffeaea;color:var(--danger)}
+#add-spec-btn{margin-top:10px;padding:7px 14px;border-radius:6px;border:1px dashed var(--border);background:transparent;color:var(--text3);font-size:12px;cursor:pointer;transition:.12s}
+#add-spec-btn:hover{border-color:var(--accent);color:var(--accent);background:rgba(61,90,241,.04)}
+.spec-hint{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
+.spec-tag{padding:3px 8px;border-radius:4px;background:var(--bg);border:1px solid var(--border);font-size:11px;color:var(--text2);cursor:pointer;transition:.12s}
+.spec-tag:hover{border-color:var(--accent);color:var(--accent);background:rgba(61,90,241,.05)}
+
+/* ── PHOTO SECTION ── */
+.photo-area{display:grid;grid-template-columns:160px 1fr;gap:16px;align-items:start}
+.photo-preview{width:160px;height:120px;border-radius:8px;border:2px dashed var(--border);background:var(--bg);display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}
+.photo-preview img{width:100%;height:100%;object-fit:contain}
+.photo-preview .no-photo{font-size:36px;opacity:.3}
+.photo-controls{display:flex;flex-direction:column;gap:8px}
+.photo-path-note{font-size:11px;color:var(--text3);margin-top:4px;line-height:1.5}
+.photo-upload-btn{padding:8px 14px;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--text2);font-size:12px;cursor:pointer;transition:.12s;display:inline-block;text-align:center}
+.photo-upload-btn:hover{border-color:var(--accent);color:var(--accent)}
+#photo-file-input{display:none}
+
+/* ── PDF MÉTIERS TAB ── */
+#metiers-sidebar{width:280px;background:var(--sidebar-bg);color:#e8eaf0;display:flex;flex-direction:column;overflow:hidden;border-right:1px solid rgba(255,255,255,.06)}
+#metiers-sidebar-header{padding:16px 14px 10px;flex-shrink:0;border-bottom:1px solid rgba(255,255,255,.06)}
+#metiers-sidebar-header h3{font-size:13px;font-weight:700;color:#fff;margin-bottom:10px}
+.add-metier-btn{width:100%;padding:9px;border-radius:6px;border:2px dashed rgba(255,255,255,.2);background:transparent;color:rgba(255,255,255,.5);font-size:12px;cursor:pointer;transition:.15s;text-align:center;margin-top:8px}
+.add-metier-btn:hover{border-color:var(--accent2);color:var(--accent2);background:rgba(13,203,142,.06)}
+#metiers-list{flex:1;overflow-y:auto;padding:8px 6px}
+.metier-item{padding:10px 12px;border-radius:6px;cursor:pointer;margin-bottom:3px;transition:.12s;display:flex;align-items:center;gap:10px}
+.metier-item:hover{background:var(--sidebar-hover)}
+.metier-item.active{background:var(--sidebar-active)}
+.metier-icon{font-size:20px;width:28px;text-align:center}
+.metier-info{flex:1;min-width:0}
+.metier-label{font-size:13px;font-weight:600;color:#e8eaf0}
+.metier-count{font-size:11px;color:rgba(255,255,255,.4);margin-top:2px}
+.metier-color-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+#metiers-editor-wrap{flex:1;overflow-y:auto;background:var(--bg);padding:24px 28px}
+#metiers-editor-wrap::-webkit-scrollbar{width:6px}
+#metiers-editor-wrap::-webkit-scrollbar-thumb{background:var(--border);border-radius:6px}
+#metiers-placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:16px;color:var(--text3);font-size:14px}
+#metiers-placeholder .big-icon{font-size:56px;opacity:.3}
+#metier-editor{display:none}
+
+.metier-editor-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;padding-bottom:16px;border-bottom:2px solid var(--border)}
+.metier-editor-top h2{font-size:17px;font-weight:700}
+
+/* Rules table */
+.rules-section{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px;margin-bottom:16px}
+.rules-section h3{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);margin-bottom:14px}
+.rule-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.tag-input-wrap{display:flex;flex-wrap:wrap;gap:6px;padding:8px;border-radius:6px;border:1px solid var(--input-border);background:var(--input-bg);min-height:40px;cursor:text}
+.tag-input-wrap:focus-within{border-color:var(--accent);background:#fff}
+.rule-tag{padding:3px 8px;border-radius:4px;background:var(--accent);color:#fff;font-size:12px;display:flex;align-items:center;gap:4px}
+.rule-tag.excl{background:var(--danger)}
+.rule-tag .rm{cursor:pointer;opacity:.7;font-size:14px;line-height:1}.rule-tag .rm:hover{opacity:1}
+.rule-tag-input{border:none;background:transparent;outline:none;font-size:12px;min-width:80px;color:var(--text)}
+.fam-checks{display:flex;flex-wrap:wrap;gap:8px}
+.fam-check{display:flex;align-items:center;gap:5px;padding:5px 10px;border-radius:5px;background:var(--bg);border:1px solid var(--border);cursor:pointer;font-size:12px;transition:.12s}
+.fam-check:hover{border-color:var(--accent)}
+.fam-check input{accent-color:var(--accent)}
+.preview-count{font-size:13px;color:var(--text2);background:var(--bg);padding:10px 14px;border-radius:6px;border:1px solid var(--border);margin-top:12px}
+.preview-count strong{color:var(--accent)}
+.preview-count.zero strong{color:var(--danger)}
+.courant-range{display:flex;align-items:center;gap:8px}
+.courant-range input{width:90px}
+.courant-range span{font-size:13px;color:var(--text3)}
+.metiers-export-bar{background:var(--card);border-top:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;gap:12px;flex-shrink:0}
+.metiers-export-bar p{font-size:12px;color:var(--text2)}
+
+/* ── PDF IMPORT MODAL ── */
+#pdf-modal{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+#pdf-modal.on{display:flex}
+.pdf-modal-box{background:#fff;border-radius:12px;padding:28px;max-width:640px;width:95%;max-height:90vh;overflow-y:auto;box-shadow:0 16px 48px rgba(0,0,0,.25)}
+.pdf-modal-box h2{font-size:18px;font-weight:700;margin-bottom:6px}
+.pdf-modal-box .sub{font-size:13px;color:var(--text2);margin-bottom:20px}
+.pdf-drop-zone{border:2px dashed var(--border);border-radius:8px;padding:32px;text-align:center;cursor:pointer;transition:.2s;background:var(--bg)}
+.pdf-drop-zone:hover,.pdf-drop-zone.drag{border-color:var(--accent);background:rgba(61,90,241,.04)}
+.pdf-drop-zone .drop-icon{font-size:40px;margin-bottom:10px}
+.pdf-drop-zone p{font-size:14px;color:var(--text2)}
+.pdf-drop-zone small{font-size:12px;color:var(--text3)}
+#pdf-file-input{display:none}
+.pdf-parsed{margin-top:20px;display:none}
+.pdf-parsed h3{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-bottom:12px}
+.parsed-row{display:grid;grid-template-columns:140px 1fr;gap:8px;align-items:center;margin-bottom:8px}
+.parsed-row label{font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.3px}
+.parsed-row input{padding:7px 10px;border:1px solid var(--input-border);border-radius:5px;font-size:13px;background:var(--input-bg);color:var(--text);width:100%;outline:none}
+.parsed-row input:focus{border-color:var(--accent);background:#fff}
+.parsed-row input.found{border-color:var(--accent2);background:#f0fff8}
+.pdf-specs-preview{font-size:12px;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:12px;margin-top:8px;max-height:160px;overflow-y:auto;font-family:monospace;white-space:pre-wrap;color:var(--text2)}
+.pdf-modal-btns{display:flex;justify-content:flex-end;gap:10px;margin-top:20px;padding-top:16px;border-top:1px solid var(--border)}
+.pdf-prog{margin-top:16px;display:none}
+.pdf-prog-bar{height:4px;background:var(--bg);border-radius:2px;overflow:hidden;margin-top:8px}
+.pdf-prog-fill{height:4px;background:var(--accent);width:0;transition:width .3s;border-radius:2px}
+.pdf-status-txt{font-size:12px;color:var(--text2);margin-top:6px}
+.confidence-badge{font-size:11px;padding:2px 7px;border-radius:4px;font-weight:600;margin-left:6px}
+.confidence-badge.high{background:#dcfce7;color:#166534}
+.confidence-badge.med{background:#fef9c3;color:#854d0e}
+.confidence-badge.low{background:#fee2e2;color:#991b1b}
+
+/* ── SCROLLBAR ── */
+#product-list::-webkit-scrollbar-track,
+#editor-wrap::-webkit-scrollbar-track,
+#metiers-editor-wrap::-webkit-scrollbar-track{background:transparent}
+
+/* ── EMPTY/LOADING ── */
+.empty{text-align:center;padding:40px 20px;color:rgba(255,255,255,.3);font-size:12px}
+
+/* ── TOAST ── */
+#toast{position:fixed;bottom:24px;right:24px;background:#1c2235;color:#fff;padding:12px 20px;border-radius:8px;font-size:13px;box-shadow:0 4px 20px rgba(0,0,0,.3);transform:translateY(80px);opacity:0;transition:.25s;z-index:999;border-left:3px solid var(--accent2)}
+#toast.show{transform:translateY(0);opacity:1}
+#toast.err{border-color:var(--danger)}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div id="topbar">
+  <div class="logo">AZ <span>Energy</span> — Admin Catalogue</div>
+  <div class="sep"></div>
+  <button class="tb-btn primary" onclick="triggerLoad()">📂 Ouvrir catalogue</button>
+  <input type="file" id="catalogue-file-input" accept=".html" style="display:none" onchange="loadCatalogue(this)">
+  <button class="tb-btn success" id="save-btn" onclick="saveCatalogue()" disabled>💾 Sauvegarder</button>
+  <button class="tb-btn secondary" id="new-prod-btn" onclick="createNewProduct()" disabled>➕ Nouveau produit</button>
+  <button class="tb-btn pdf-import" onclick="openPdfImport()">📄 Importer PDF produit</button>
+  <div class="sep"></div>
+  <button class="tb-btn secondary" id="export-metiers-btn" onclick="exportMetiersCatalogue()" disabled title="Générer catalogue-pdf-metiers.html mis à jour">🗂️ Exporter métiers</button>
+  <div id="status">Aucun fichier chargé</div>
+</div>
+
+<!-- TAB BAR -->
+<div id="tab-bar">
+  <button class="tab-btn active" id="tab-btn-products" onclick="switchTab('products')">📦 Produits</button>
+  <button class="tab-btn" id="tab-btn-metiers" onclick="switchTab('metiers')">🗂️ PDF Métiers</button>
+</div>
+
+<!-- TAB: PRODUCTS -->
+<div id="tab-products" class="active-tab">
+  <!-- SIDEBAR -->
+  <div id="sidebar">
+    <div id="sidebar-header">
+      <input type="text" id="search" placeholder="🔍  Référence, description, marque…" oninput="renderList()">
+      <div id="filters">
+        <select class="f-sel" id="f-famille" onchange="renderList()">
+          <option value="">Toutes familles</option>
+          <option value="batteries">Batteries</option>
+          <option value="piles">Piles</option>
+          <option value="eclairages">Éclairages</option>
+          <option value="charge-demarrage">Charge & Démarrage</option>
+          <option value="lubrifiants">Lubrifiants</option>
+        </select>
+        <select class="f-sel" id="f-marque" onchange="renderList()">
+          <option value="">Toutes marques</option>
+        </select>
+        <select class="f-sel" id="f-sf" onchange="renderList()">
+          <option value="">Toutes s/familles</option>
+        </select>
+        <select class="f-sel" id="f-flag" onchange="renderList()">
+          <option value="">Tous statuts</option>
+          <option value="new">Nouveauté</option>
+          <option value="promo">Promo/Prix</option>
+          <option value="epuise">Épuisé</option>
+        </select>
+      </div>
+    </div>
+    <div id="sidebar-stats">Chargez un catalogue pour commencer</div>
+    <div id="product-list"><div class="empty">Aucun produit chargé</div></div>
+  </div>
+
+  <!-- EDITOR -->
+  <div id="editor-wrap">
+    <div id="editor-placeholder">
+      <div class="big-icon">📦</div>
+      <p>Ouvrez un fichier catalogue pour commencer</p>
+      <p style="font-size:12px">Sélectionnez ensuite un produit dans la liste à gauche</p>
+    </div>
+
+    <div id="editor">
+      <div class="editor-top">
+        <h2 id="editor-title">Nouveau produit</h2>
+        <div class="editor-actions">
+          <button class="tb-btn danger" id="delete-btn" onclick="deleteProduct()">🗑️ Supprimer</button>
+          <button class="tb-btn primary" onclick="saveProduct()">💾 Enregistrer</button>
+        </div>
+      </div>
+
+      <!-- SECTION IDENTIFICATION -->
+      <div class="section">
+        <h3>Identification</h3>
+        <div class="form-grid cols3">
+          <div class="field">
+            <label>Référence *</label>
+            <input type="text" id="f-r" placeholder="01_0028_401" required>
+          </div>
+          <div class="field">
+            <label>SAP</label>
+            <input type="text" id="f-sap" placeholder="220205">
+          </div>
+          <div class="field">
+            <label>Famille *</label>
+            <select class="fld" id="f-famille-prod" onchange="onFamilleChange()">
+              <option value="batteries">Batteries</option>
+              <option value="piles">Piles</option>
+              <option value="eclairages">Éclairages</option>
+              <option value="charge-demarrage">Charge & Démarrage</option>
+              <option value="lubrifiants">Lubrifiants</option>
+            </select>
+          </div>
+          <div class="field full">
+            <label>Description *</label>
+            <input type="text" id="f-d" placeholder="Description complète du produit">
+          </div>
+          <div class="field">
+            <label>Marque *</label>
+            <input type="text" id="f-m" placeholder="AZP, FREEBATT, TELWIN…">
+          </div>
+          <div class="field">
+            <label>Sous-famille</label>
+            <input type="text" id="f-sf-prod" placeholder="torches, demarrage-vl…">
+          </div>
+          <div class="field">
+            <label>Type / Technologie</label>
+            <input type="text" id="f-t" placeholder="AGM, Torche, Chargeur…">
+          </div>
+          <div class="field">
+            <label>Groupe / Gamme</label>
+            <input type="text" id="f-g" placeholder="Automotive AGM, Torches…">
+          </div>
+          <div class="field">
+            <label>ID (auto)</label>
+            <input type="text" id="f-id" placeholder="généré automatiquement" style="color:var(--text3)">
+          </div>
+        </div>
+        <div class="check-row" style="margin-top:14px">
+          <label class="check-item"><input type="checkbox" id="f-n"><span>🆕 Nouveauté</span></label>
+          <label class="check-item"><input type="checkbox" id="f-p"><span>🏷️ Affiché en prix</span></label>
+          <label class="check-item"><input type="checkbox" id="f-e"><span>⚠️ Épuisé</span></label>
+        </div>
+      </div>
+
+      <!-- SECTION SPECS -->
+      <div class="section">
+        <h3>Caractéristiques techniques</h3>
+        <p id="spec-hint-label" style="font-size:11px;color:var(--text3);margin-bottom:12px">Cliquez sur un champ suggéré pour l'ajouter, ou ajoutez manuellement :</p>
+        <div class="spec-hint" id="spec-hints"></div>
+        <br>
+        <table id="specs-table">
+          <thead><tr>
+            <th style="width:150px">Clé</th>
+            <th>Valeur</th>
+            <th></th>
+          </tr></thead>
+          <tbody id="specs-tbody"></tbody>
+        </table>
+        <button id="add-spec-btn" onclick="addSpecRow('','')">+ Ajouter un champ</button>
+      </div>
+
+      <!-- SECTION PHOTO -->
+      <div class="section">
+        <h3>Photo produit</h3>
+        <div class="photo-area">
+          <div class="photo-preview" id="photo-preview-box">
+            <span class="no-photo">📷</span>
+          </div>
+          <div class="photo-controls">
+            <div class="field">
+              <label>Chemin photo (relatif)</label>
+              <input type="text" id="f-photo-path" placeholder="Photo/01_0028_401.png" oninput="onPhotoPathChange()">
+            </div>
+            <label class="photo-upload-btn" for="photo-file-input">📁 Charger une photo pour prévisualiser</label>
+            <input type="file" id="photo-file-input" accept="image/*" onchange="handlePhotoUpload(this)">
+            <p class="photo-path-note">
+              ℹ️ Nommez le fichier <strong id="photo-suggested-name">REF.png</strong> et copiez-le dans le dossier <code>Photo/</code> du catalogue.<br>
+              La photo sera automatiquement reconnue au prochain chargement.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div><!-- /editor -->
+  </div><!-- /editor-wrap -->
+</div><!-- /tab-products -->
+
+<!-- TAB: PDF MÉTIERS -->
+<div id="tab-metiers">
+  <div id="metiers-sidebar">
+    <div id="metiers-sidebar-header">
+      <h3>🗂️ Catalogues par Métier</h3>
+      <p style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:4px">Définissez les catégories et les règles de classification des produits.</p>
+      <button class="add-metier-btn" onclick="createNewMetier()">+ Ajouter un métier</button>
+    </div>
+    <div id="metiers-list"></div>
+  </div>
+
+  <div id="metiers-editor-wrap">
+    <div id="metiers-placeholder">
+      <div class="big-icon">🗂️</div>
+      <p>Sélectionnez un métier à configurer</p>
+      <p style="font-size:12px">Ou créez un nouveau métier avec le bouton ci-contre</p>
+    </div>
+    <div id="metier-editor">
+      <div class="metier-editor-top">
+        <h2 id="metier-editor-title">Métier</h2>
+        <div style="display:flex;gap:8px">
+          <button class="tb-btn danger" id="metier-delete-btn" onclick="deleteMetier()">🗑️ Supprimer</button>
+          <button class="tb-btn primary" onclick="saveMetier()">💾 Enregistrer</button>
+        </div>
+      </div>
+
+      <!-- Infos de base -->
+      <div class="section">
+        <h3>Informations du métier</h3>
+        <div class="form-grid cols3">
+          <div class="field">
+            <label>Icône (emoji)</label>
+            <input type="text" id="me-icon" placeholder="🔧" maxlength="4">
+          </div>
+          <div class="field">
+            <label>Couleur</label>
+            <input type="color" id="me-color" value="#1565C0" style="height:39px;padding:3px 6px;border:1px solid var(--input-border);border-radius:6px;background:var(--input-bg);cursor:pointer;width:100%">
+          </div>
+          <div class="field">
+            <label>Clé interne</label>
+            <input type="text" id="me-key" placeholder="auto, pl, marine…">
+          </div>
+          <div class="field full">
+            <label>Libellé affiché</label>
+            <input type="text" id="me-label" placeholder="Garagiste / Auto">
+          </div>
+          <div class="field full">
+            <label>Description courte</label>
+            <input type="text" id="me-desc" placeholder="Batteries VL Standard, AGM, EFB — chargeurs 12V">
+          </div>
+        </div>
+      </div>
+
+      <!-- Règles de classification -->
+      <div class="rules-section">
+        <h3>Règles de classification des produits</h3>
+        <p style="font-size:12px;color:var(--text3);margin-bottom:16px">Un produit est inclus si toutes les règles activées sont vérifiées. Laissez vide = pas de restriction.</p>
+
+        <div class="field" style="margin-bottom:14px">
+          <label>Familles incluses (vide = toutes)</label>
+          <div class="fam-checks" id="me-familles">
+            <label class="fam-check"><input type="checkbox" value="batteries"> Batteries</label>
+            <label class="fam-check"><input type="checkbox" value="piles"> Piles</label>
+            <label class="fam-check"><input type="checkbox" value="eclairages"> Éclairages</label>
+            <label class="fam-check"><input type="checkbox" value="charge-demarrage"> Charge & Démarrage</label>
+            <label class="fam-check"><input type="checkbox" value="lubrifiants"> Lubrifiants</label>
+          </div>
+        </div>
+
+        <div class="rule-grid">
+          <div class="field">
+            <label>Marques incluses (vide = toutes)</label>
+            <div class="tag-input-wrap" id="me-marques-incl" onclick="focusTagInput(this)">
+              <input type="text" class="rule-tag-input" placeholder="Ex : FREEBATT, VARTA" onkeydown="tagInputKey(event,this,'incl')">
+            </div>
+          </div>
+          <div class="field">
+            <label>Marques exclues</label>
+            <div class="tag-input-wrap" id="me-marques-excl" onclick="focusTagInput(this)">
+              <input type="text" class="rule-tag-input" placeholder="Ex : ACEDIS" onkeydown="tagInputKey(event,this,'excl')">
+            </div>
+          </div>
+          <div class="field">
+            <label>Sous-familles incluses (vide = toutes)</label>
+            <div class="tag-input-wrap" id="me-sf-incl" onclick="focusTagInput(this)">
+              <input type="text" class="rule-tag-input" placeholder="Ex : demarrage-vl" onkeydown="tagInputKey(event,this,'incl')">
+            </div>
+          </div>
+          <div class="field">
+            <label>Sous-familles exclues</label>
+            <div class="tag-input-wrap" id="me-sf-excl" onclick="focusTagInput(this)">
+              <input type="text" class="rule-tag-input" placeholder="Ex : marine-loisirs" onkeydown="tagInputKey(event,this,'excl')">
+            </div>
+          </div>
+          <div class="field">
+            <label>Mots-clés requis dans Type/Groupe (au moins 1)</label>
+            <div class="tag-input-wrap" id="me-kw-incl" onclick="focusTagInput(this)">
+              <input type="text" class="rule-tag-input" placeholder="Ex : PL, HD, Agri" onkeydown="tagInputKey(event,this,'incl')">
+            </div>
+          </div>
+          <div class="field">
+            <label>Mots-clés exclus dans Type/Groupe</label>
+            <div class="tag-input-wrap" id="me-kw-excl" onclick="focusTagInput(this)">
+              <input type="text" class="rule-tag-input" placeholder="Ex : Marine, Stationnaire" onkeydown="tagInputKey(event,this,'excl')">
+            </div>
+          </div>
+        </div>
+
+        <div class="field" style="margin-top:14px">
+          <label>Courant max (charge-démarrage) — plage de valeurs (A)</label>
+          <div class="courant-range">
+            <input type="number" id="me-courant-min" placeholder="min ex: 20" style="width:120px">
+            <span>à</span>
+            <input type="number" id="me-courant-max" placeholder="max ex: 100" style="width:120px">
+            <span style="font-size:12px;color:var(--text3)">(ampères — laissez vide si non applicable)</span>
+          </div>
+        </div>
+
+        <div id="me-preview" class="preview-count" style="margin-top:16px">
+          Chargez un catalogue pour voir le nombre de produits correspondants.
+        </div>
+      </div>
+
+      <!-- Actions export -->
+      <div class="section">
+        <h3>Export</h3>
+        <p style="font-size:13px;color:var(--text2);margin-bottom:12px">Après avoir configuré tous les métiers, exportez le fichier <code>catalogue-pdf-metiers.html</code> mis à jour.</p>
+        <button class="tb-btn success" onclick="exportMetiersCatalogue()">🗂️ Générer catalogue-pdf-metiers.html</button>
+      </div>
+    </div>
+  </div>
+</div><!-- /tab-metiers -->
+
+<!-- PDF IMPORT MODAL -->
+<div id="pdf-modal">
+  <div class="pdf-modal-box">
+    <h2>📄 Importer un produit depuis PDF</h2>
+    <p class="sub">Téléchargez une fiche produit PDF — les informations détectées seront pré-remplies dans le formulaire de création.</p>
+
+    <div class="pdf-drop-zone" id="pdf-drop-zone" onclick="document.getElementById('pdf-file-input').click()"
+         ondragover="event.preventDefault();this.classList.add('drag')"
+         ondragleave="this.classList.remove('drag')"
+         ondrop="handlePdfDrop(event)">
+      <div class="drop-icon">📂</div>
+      <p>Cliquez ou glissez-déposez une fiche PDF ici</p>
+      <small>Fichiers PDF uniquement — extraction automatique du texte</small>
+    </div>
+    <input type="file" id="pdf-file-input" accept=".pdf" onchange="handlePdfUpload(this)">
+
+    <div class="pdf-prog" id="pdf-prog">
+      <div class="pdf-prog-bar"><div class="pdf-prog-fill" id="pdf-prog-fill"></div></div>
+      <div class="pdf-status-txt" id="pdf-status-txt">Extraction du texte…</div>
+    </div>
+
+    <div class="pdf-parsed" id="pdf-parsed">
+      <h3>Données détectées <span id="pdf-confidence-badge" class="confidence-badge"></span></h3>
+      <div class="parsed-row"><label>Référence</label><input type="text" id="pi-r" placeholder="non détecté"></div>
+      <div class="parsed-row"><label>SAP</label><input type="text" id="pi-sap" placeholder="non détecté"></div>
+      <div class="parsed-row"><label>Description</label><input type="text" id="pi-d" placeholder="non détecté"></div>
+      <div class="parsed-row"><label>Marque</label><input type="text" id="pi-m" placeholder="non détecté"></div>
+      <div class="parsed-row"><label>Famille</label>
+        <select id="pi-famille" class="fld">
+          <option value="batteries">Batteries</option>
+          <option value="piles">Piles</option>
+          <option value="eclairages">Éclairages</option>
+          <option value="charge-demarrage">Charge & Démarrage</option>
+          <option value="lubrifiants">Lubrifiants</option>
+        </select>
+      </div>
+      <div class="parsed-row"><label>Sous-famille</label><input type="text" id="pi-sf" placeholder="non détecté"></div>
+      <div class="parsed-row"><label>Type / Tech.</label><input type="text" id="pi-t" placeholder="non détecté"></div>
+      <h3 style="margin-top:14px">Caractéristiques détectées</h3>
+      <div class="pdf-specs-preview" id="pdf-specs-preview"></div>
+      <p style="font-size:11px;color:var(--text3);margin-top:8px">ℹ️ Vérifiez et corrigez les valeurs avant de créer le produit. Les specs seront éditables dans le formulaire.</p>
+    </div>
+
+    <div class="pdf-modal-btns">
+      <button class="tb-btn secondary" onclick="closePdfImport()">Annuler</button>
+      <button class="tb-btn primary" id="pdf-create-btn" onclick="createFromPdf()" disabled>✅ Créer le produit</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// PDF.js worker
+if (typeof pdfjsLib !== 'undefined') {
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+}
+
+// ══════════════════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════════════════
+let allProducts = [];
+let photoMap = {};
+let catalogueHTML = '';
+let allStart = -1, allEnd = -1;
+let pmStart = -1, pmEnd = -1;
+let currentRef = null;
+let isNewProduct = false;
+let photoBlob = null;
+let parsedPdfSpecs = {};
+
+// Métiers state
+let metiersConfig = [
+  { key:'auto', label:'Garagiste / Auto', icon:'🔧', color:'#1565C0',
+    desc:'Batteries VL Standard, AGM, EFB — chargeurs 12V',
+    rules:{ familles:['batteries'], marques_incl:[], marques_excl:['ACEDIS'],
+      sf_incl:[], sf_excl:[], kw_incl:[], kw_excl:['PL','HD','SHD','Marine','Poids','Industrial','tationnaire','OPz'],
+      courant_min:null, courant_max:null }},
+  { key:'pl', label:'Poids Lourds', icon:'🚛', color:'#E65100',
+    desc:'Batteries PL/HD 12V-24V — chargeurs & boosters',
+    rules:{ familles:['batteries','charge-demarrage'], marques_incl:[], marques_excl:[],
+      sf_incl:[], sf_excl:[], kw_incl:['PL','HD','SHD','Poids','eavy','Agri'], kw_excl:[],
+      courant_min:20, courant_max:null }},
+  { key:'marine', label:'Marine / Nautisme', icon:'⚓', color:'#0277BD',
+    desc:'Batteries Marine, GEL, décharge lente',
+    rules:{ familles:['batteries'], marques_incl:[], marques_excl:[],
+      sf_incl:['marine-loisirs'], sf_excl:[], kw_incl:['arine','GEL','Gel'], kw_excl:[],
+      courant_min:null, courant_max:null }},
+  { key:'industrie', label:'Industrie / Énergie', icon:'🏭', color:'#2E7D32',
+    desc:'Batteries stationnaires ACEDIS — chargeurs Telwin',
+    rules:{ familles:[], marques_incl:['ACEDIS','TELWIN'], marques_excl:[],
+      sf_incl:['chargeurs','charge-start'], sf_excl:[], kw_incl:[], kw_excl:[],
+      courant_min:null, courant_max:null }},
+  { key:'bricolage', label:'Bricolage', icon:'🔨', color:'#F57F17',
+    desc:'Piles toutes gammes — éclairages professionnels',
+    rules:{ familles:['piles','eclairages'], marques_incl:[], marques_excl:[],
+      sf_incl:[], sf_excl:[], kw_incl:[], kw_excl:[],
+      courant_min:null, courant_max:10 }},
+];
+let currentMetierKey = null;
+
+const FAM_LABELS = {
+  batteries: 'Batteries', piles: 'Piles', eclairages: 'Éclairages',
+  'charge-demarrage': 'Charge & Démarrage', lubrifiants: 'Lubrifiants'
+};
+const FAM_BADGE = {
+  batteries:'bat', piles:'pil', eclairages:'ecl',
+  'charge-demarrage':'cd', lubrifiants:'lub'
+};
+const SPEC_HINTS = {
+  batteries: ['v','ah','cca','bac','dim','pol','hd','kg','ean','tech','borne','note'],
+  piles: ['tension','nb','cap','gencod','boite'],
+  eclairages: ['lm','autonomie','portee','alim','ip','modes','dim','kg','charge','prix_ht','gencod'],
+  'charge-demarrage': ['tension','puissance','courant_max','capacite_max','courant_charge','courant_start','courant_peak','capacite','ref','prix_ht','note','description'],
+  lubrifiants: ['viscosité','cond','cat']
+};
+
+// ══════════════════════════════════════════════════════════════════
+// TABS
+// ══════════════════════════════════════════════════════════════════
+function switchTab(name) {
+  document.getElementById('tab-products').classList.toggle('active-tab', name === 'products');
+  document.getElementById('tab-metiers').classList.toggle('active-tab', name === 'metiers');
+  document.getElementById('tab-btn-products').classList.toggle('active', name === 'products');
+  document.getElementById('tab-btn-metiers').classList.toggle('active', name === 'metiers');
+  if (name === 'metiers') renderMetiersList();
+}
+
+// ══════════════════════════════════════════════════════════════════
+// FILE I/O
+// ══════════════════════════════════════════════════════════════════
+function triggerLoad() {
+  document.getElementById('catalogue-file-input').click();
+}
+
+function loadCatalogue(input) {
+  const file = input.files[0];
+  if (!file) return;
+  setStatus('info', '⏳ Chargement…');
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      catalogueHTML = e.target.result;
+      const allRes = extractBracketContent(catalogueHTML, 'ALL=[{', '[');
+      if (!allRes) throw new Error('ALL=[] introuvable dans le fichier');
+      allStart = allRes.start; allEnd = allRes.end;
+      allProducts = allRes.data;
+      const pmRes = extractBracketContent(catalogueHTML, 'PHOTO_MAP = {', '{');
+      if (pmRes) { pmStart = pmRes.start; pmEnd = pmRes.end; photoMap = pmRes.data; }
+      else { photoMap = {}; pmStart = -1; pmEnd = -1; }
+      document.getElementById('save-btn').disabled = false;
+      document.getElementById('new-prod-btn').disabled = false;
+      document.getElementById('export-metiers-btn').disabled = false;
+      updateMarqueFilter();
+      renderList();
+      refreshMetierPreviews();
+      setStatus('ok', `✅ ${allProducts.length} produits — ${Object.keys(photoMap).length} photos`);
+      showToast(`Catalogue chargé : ${allProducts.length} produits`);
+    } catch(err) {
+      setStatus('err', '❌ ' + err.message);
+      showToast('Erreur : ' + err.message, true);
+    }
+  };
+  reader.readAsText(file, 'utf-8');
+}
+
+function saveCatalogue() {
+  if (!catalogueHTML) return;
+  let html = catalogueHTML;
+  const newArr = JSON.stringify(allProducts, null, 0);
+  html = html.slice(0, allStart) + newArr + html.slice(allEnd);
+  const lenDiff = newArr.length - (allEnd - allStart);
+  const pmS = pmStart + lenDiff, pmE = pmEnd + lenDiff;
+  if (pmStart >= 0) {
+    const newPm = JSON.stringify(photoMap, null, 0);
+    html = html.slice(0, pmS) + newPm + html.slice(pmE);
+  }
+  downloadFile(html, 'catalogue-standalone v8.html', 'text/html');
+  showToast('💾 Catalogue sauvegardé — remplacez le fichier original');
+  setStatus('ok', `✅ ${allProducts.length} produits — sauvegardé`);
+}
+
+function downloadFile(content, filename, mime) {
+  const blob = new Blob([content], {type: mime + ';charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ══════════════════════════════════════════════════════════════════
+// PARSING HELPERS
+// ══════════════════════════════════════════════════════════════════
+function extractBracketContent(str, marker, openChar) {
+  const idx = str.indexOf(marker);
+  if (idx < 0) return null;
+  const bStart = str.indexOf(openChar, idx);
+  const closeChar = openChar === '[' ? ']' : '}';
+  let depth = 0, i = bStart, inStr = false, escape = false;
+  while (i < str.length) {
+    const c = str[i];
+    if (escape) { escape = false; i++; continue; }
+    if (c === '\\' && inStr) { escape = true; i++; continue; }
+    if (c === '"') { inStr = !inStr; i++; continue; }
+    if (!inStr) {
+      if (c === openChar) depth++;
+      else if (c === closeChar) { depth--; if (depth === 0) break; }
+    }
+    i++;
+  }
+  try {
+    return { start: bStart, end: i + 1, data: JSON.parse(str.slice(bStart, i + 1)) };
+  } catch(e) { return null; }
+}
+
+// ══════════════════════════════════════════════════════════════════
+// PRODUCT LIST
+// ══════════════════════════════════════════════════════════════════
+function updateMarqueFilter() {
+  const marques = [...new Set(allProducts.map(p => p.m).filter(Boolean))].sort();
+  const sel = document.getElementById('f-marque');
+  sel.innerHTML = '<option value="">Toutes marques</option>' +
+    marques.map(m => `<option value="${m}">${m}</option>`).join('');
+}
+
+function renderList() {
+  const q = document.getElementById('search').value.trim().toLowerCase();
+  const fam = document.getElementById('f-famille').value;
+  const mk = document.getElementById('f-marque').value;
+  const sf = document.getElementById('f-sf').value;
+  const flag = document.getElementById('f-flag').value;
+
+  let items = allProducts.filter(p => {
+    if (fam && (p.famille || 'batteries') !== fam) return false;
+    if (mk && p.m !== mk) return false;
+    if (sf && p.sf !== sf) return false;
+    if (flag === 'new' && !p.n) return false;
+    if (flag === 'promo' && !p.p) return false;
+    if (flag === 'epuise' && !p.e) return false;
+    if (q) {
+      const hay = (p.r + ' ' + p.d + ' ' + (p.m||'') + ' ' + (p.sf||'')).toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+
+  if (fam) {
+    const sfs = [...new Set(allProducts.filter(p=>(p.famille||'batteries')===fam).map(p=>p.sf).filter(Boolean))].sort();
+    const sfSel = document.getElementById('f-sf');
+    const curSf = sfSel.value;
+    sfSel.innerHTML = '<option value="">Toutes s/familles</option>' + sfs.map(s=>`<option value="${s}" ${s===curSf?'selected':''}>${s}</option>`).join('');
+  }
+
+  document.getElementById('sidebar-stats').textContent = `${items.length} produit${items.length>1?'s':''} • ${allProducts.length} au total`;
+
+  const list = document.getElementById('product-list');
+  if (items.length === 0) { list.innerHTML = '<div class="empty">Aucun résultat</div>'; return; }
+
+  list.innerHTML = items.slice(0, 500).map(p => {
+    const fclass = FAM_BADGE[p.famille||'batteries']||'bat';
+    const badges = [
+      `<span class="badge ${fclass}">${FAM_LABELS[p.famille||'batteries']||'?'}</span>`,
+      p.n ? '<span class="badge new">NEW</span>' : '',
+      p.p ? '<span class="badge promo">PRIX</span>' : '',
+      p.e ? '<span class="badge epuise">ÉPUISÉ</span>' : ''
+    ].filter(Boolean).join('');
+    const active = p.r === currentRef ? 'active' : '';
+    return `<div class="prod-item ${active}" onclick="openProduct('${esc(p.r)}')">
+      <div class="prod-ref">${esc(p.r)}</div>
+      <div class="prod-desc">${esc(p.d)}</div>
+      <div class="prod-meta">${badges}</div>
+    </div>`;
+  }).join('');
+  if (items.length > 500) list.innerHTML += `<div class="empty">… et ${items.length-500} autres</div>`;
+}
+
+// ══════════════════════════════════════════════════════════════════
+// PRODUCT EDITOR
+// ══════════════════════════════════════════════════════════════════
+function openProduct(ref) {
+  const p = allProducts.find(x => x.r === ref);
+  if (!p) return;
+  currentRef = ref; isNewProduct = false; photoBlob = null;
+  populateEditor(p); renderList();
+}
+
+function createNewProduct(prefill) {
+  currentRef = null; isNewProduct = true; photoBlob = null;
+  const empty = prefill || { id:'', r:'', sap:'', d:'', m:'', sf:'', t:'', g:'', famille:'batteries', s:{}, n:false, p:false, e:false };
+  populateEditor(empty);
+  switchTab('products');
+}
+
+function populateEditor(p) {
+  document.getElementById('editor-placeholder').style.display = 'none';
+  document.getElementById('editor').style.display = 'block';
+  document.getElementById('editor-title').textContent = isNewProduct ? '➕ Nouveau produit' : `Édition — ${p.r}`;
+  document.getElementById('delete-btn').style.display = isNewProduct ? 'none' : '';
+  document.getElementById('f-r').value = p.r || '';
+  document.getElementById('f-sap').value = p.sap || '';
+  document.getElementById('f-d').value = p.d || '';
+  document.getElementById('f-m').value = p.m || '';
+  document.getElementById('f-sf-prod').value = p.sf || '';
+  document.getElementById('f-t').value = p.t || '';
+  document.getElementById('f-g').value = p.g || '';
+  document.getElementById('f-id').value = p.id || '';
+  document.getElementById('f-n').checked = !!p.n;
+  document.getElementById('f-p').checked = !!p.p;
+  document.getElementById('f-e').checked = !!p.e;
+  document.getElementById('f-famille-prod').value = p.famille || 'batteries';
+  renderSpecRows(p.s || {}, p.famille || 'batteries');
+  updateSpecHints(p.famille || 'batteries');
+  const photoKey = p.id || ('ecl-'+p.r);
+  const photoPath = photoMap[p.id] || photoMap[photoKey] || p.img || '';
+  document.getElementById('f-photo-path').value = photoPath;
+  document.getElementById('photo-suggested-name').textContent = (p.r||'REF') + '.png';
+  updatePhotoPreview(photoPath, null);
+}
+
+function onFamilleChange() {
+  updateSpecHints(document.getElementById('f-famille-prod').value);
+}
+
+function updateSpecHints(fam) {
+  const hints = SPEC_HINTS[fam] || [];
+  document.getElementById('spec-hints').innerHTML = hints.map(h =>
+    `<span class="spec-tag" onclick="addSpecRow('${h}','')">${h}</span>`).join('');
+}
+
+function renderSpecRows(specs, fam) {
+  const tbody = document.getElementById('specs-tbody');
+  tbody.innerHTML = '';
+  const entries = Object.entries(specs);
+  if (entries.length === 0) {
+    (SPEC_HINTS[fam]||[]).forEach(h => addSpecRow(h, ''));
+  } else {
+    entries.forEach(([k,v]) => addSpecRow(k, v));
+  }
+}
+
+function addSpecRow(key, val) {
+  const tbody = document.getElementById('specs-tbody');
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td><input type="text" class="spec-key-input fld" value="${esc(key)}" placeholder="clé"></td>
+    <td><input type="text" class="spec-val-input fld" value="${esc(String(val))}" placeholder="valeur"></td>
+    <td><button class="spec-del" onclick="this.closest('tr').remove()" title="Supprimer">×</button></td>`;
+  tbody.appendChild(tr);
+  tr.querySelector('.spec-val-input').focus();
+}
+
+function collectSpecs() {
+  const s = {};
+  document.querySelectorAll('#specs-tbody tr').forEach(row => {
+    const k = row.cells[0].querySelector('input').value.trim();
+    const v = row.cells[1].querySelector('input').value.trim();
+    if (k) s[k] = v;
+  });
+  return s;
+}
+
+function saveProduct() {
+  const r = document.getElementById('f-r').value.trim();
+  const d = document.getElementById('f-d').value.trim();
+  if (!r) { showToast('La référence est obligatoire', true); return; }
+  if (!d) { showToast('La description est obligatoire', true); return; }
+  const fam = document.getElementById('f-famille-prod').value;
+  const autoId = fam==='batteries'?'bat-'+r : fam==='piles'?'pile-'+r.replace(/[^a-z0-9]/gi,'_').toLowerCase()
+    : fam==='eclairages'?'ecl-'+r : fam==='charge-demarrage'?'cd-'+r : fam==='lubrifiants'?'lub-'+r : r;
+  const idVal = document.getElementById('f-id').value.trim() || autoId;
+  const product = {
+    id: idVal, r, sap: document.getElementById('f-sap').value.trim(),
+    d, m: document.getElementById('f-m').value.trim(),
+    sf: document.getElementById('f-sf-prod').value.trim(),
+    t: document.getElementById('f-t').value.trim(),
+    g: document.getElementById('f-g').value.trim(),
+    famille: fam, s: collectSpecs(),
+    n: document.getElementById('f-n').checked,
+    p: document.getElementById('f-p').checked,
+    e: document.getElementById('f-e').checked,
+  };
+  const photoPath = document.getElementById('f-photo-path').value.trim();
+  if (photoPath) photoMap[idVal] = photoPath; else delete photoMap[idVal];
+  if (isNewProduct) {
+    if (allProducts.find(x => x.r === r)) { showToast(`Référence "${r}" déjà existante`, true); return; }
+    allProducts.push(product); currentRef = r; isNewProduct = false;
+    showToast(`✅ Produit "${r}" créé`);
+  } else {
+    const idx = allProducts.findIndex(x => x.r === currentRef);
+    if (idx < 0) { showToast('Produit introuvable', true); return; }
+    if (currentRef !== r) {
+      if (allProducts.find(x => x.r === r)) { showToast(`Référence "${r}" déjà utilisée`, true); return; }
+      if (photoMap[product.id]) { photoMap[idVal] = photoMap[product.id]; delete photoMap[product.id]; }
+      currentRef = r;
+    }
+    allProducts[idx] = product;
+    showToast(`✅ "${r}" enregistré`);
+  }
+  renderList();
+  document.getElementById('editor-title').textContent = `Édition — ${r}`;
+  document.getElementById('delete-btn').style.display = '';
+  refreshMetierPreviews();
+}
+
+function deleteProduct() {
+  if (!currentRef) return;
+  if (!confirm(`Supprimer définitivement le produit "${currentRef}" ?`)) return;
+  const idx = allProducts.findIndex(x => x.r === currentRef);
+  if (idx >= 0) { delete photoMap[allProducts[idx].id]; allProducts.splice(idx, 1); }
+  currentRef = null;
+  document.getElementById('editor').style.display = 'none';
+  document.getElementById('editor-placeholder').style.display = '';
+  renderList(); showToast(`🗑️ Produit supprimé`);
+}
+
+// ══════════════════════════════════════════════════════════════════
+// PHOTO MANAGEMENT
+// ══════════════════════════════════════════════════════════════════
+function handlePhotoUpload(input) {
+  const file = input.files[0]; if (!file) return;
+  const url = URL.createObjectURL(file); photoBlob = url;
+  updatePhotoPreview('', url);
+  const ref = document.getElementById('f-r').value.trim() || 'produit';
+  document.getElementById('f-photo-path').value = `Photo/${ref}.png`;
+  showToast(`📷 Photo chargée — copiez-la dans Photo/ sous le nom "${ref}.png"`);
+}
+function onPhotoPathChange() {
+  updatePhotoPreview(document.getElementById('f-photo-path').value.trim(), photoBlob);
+}
+function updatePhotoPreview(path, blob) {
+  const box = document.getElementById('photo-preview-box');
+  const src = blob || path || '';
+  if (src) box.innerHTML = `<img src="${src}" onerror="this.parentElement.innerHTML='<span class=\\'no-photo\\'>📷</span>'">`;
+  else box.innerHTML = '<span class="no-photo">📷</span>';
+}
+
+// ══════════════════════════════════════════════════════════════════
+// PDF MÉTIERS MANAGEMENT
+// ══════════════════════════════════════════════════════════════════
+function applyMetierRule(p, rules) {
+  const f = p.famille || 'batteries', t = p.t||'', g = p.g||'', m = p.m||'', sf = p.sf||'';
+  const s = p.s || {};
+  // Familles
+  if (rules.familles && rules.familles.length && !rules.familles.includes(f)) return false;
+  // Marques incluses
+  if (rules.marques_incl && rules.marques_incl.length && !rules.marques_incl.includes(m)) return false;
+  // Marques exclues
+  if (rules.marques_excl && rules.marques_excl.length && rules.marques_excl.includes(m)) return false;
+  // SF incluses
+  if (rules.sf_incl && rules.sf_incl.length && !rules.sf_incl.some(x => sf===x || sf.includes(x))) return false;
+  // SF exclues
+  if (rules.sf_excl && rules.sf_excl.length && rules.sf_excl.some(x => sf===x || sf.includes(x))) return false;
+  // Mots-clés requis
+  if (rules.kw_incl && rules.kw_incl.length && !rules.kw_incl.some(x => g.includes(x)||t.includes(x))) return false;
+  // Mots-clés exclus
+  if (rules.kw_excl && rules.kw_excl.length && rules.kw_excl.some(x => g.includes(x)||t.includes(x))) return false;
+  // Courant max (charge-demarrage)
+  if ((rules.courant_min !== null && rules.courant_min !== '') || (rules.courant_max !== null && rules.courant_max !== '')) {
+    const ca = parseFloat((s.courant_max||'').replace(/[^0-9.]/g,''));
+    if (f === 'charge-demarrage') {
+      if (rules.courant_min !== null && rules.courant_min !== '' && (isNaN(ca) || ca < parseFloat(rules.courant_min))) return false;
+      if (rules.courant_max !== null && rules.courant_max !== '' && (isNaN(ca) || ca > parseFloat(rules.courant_max))) return false;
+    }
+  }
+  return true;
+}
+
+function countMetierProducts(rules) {
+  return allProducts.filter(p => applyMetierRule(p, rules)).length;
+}
+
+function refreshMetierPreviews() {
+  if (currentMetierKey) updateMetierPreview();
+  renderMetiersList();
+}
+
+function renderMetiersList() {
+  const list = document.getElementById('metiers-list');
+  list.innerHTML = metiersConfig.map(m => {
+    const count = allProducts.length ? countMetierProducts(m.rules) : '?';
+    const active = m.key === currentMetierKey ? 'active' : '';
+    return `<div class="metier-item ${active}" onclick="openMetierEditor('${m.key}')">
+      <div class="metier-icon">${m.icon}</div>
+      <div class="metier-info">
+        <div class="metier-label">${esc(m.label)}</div>
+        <div class="metier-count">${count} produits</div>
+      </div>
+      <div class="metier-color-dot" style="background:${m.color}"></div>
+    </div>`;
+  }).join('');
+}
+
+function openMetierEditor(key) {
+  const m = metiersConfig.find(x => x.key === key);
+  if (!m) return;
+  currentMetierKey = key;
+  document.getElementById('metiers-placeholder').style.display = 'none';
+  document.getElementById('metier-editor').style.display = 'block';
+  document.getElementById('metier-editor-title').textContent = `${m.icon} ${m.label}`;
+  document.getElementById('me-key').value = m.key;
+  document.getElementById('me-label').value = m.label;
+  document.getElementById('me-icon').value = m.icon;
+  document.getElementById('me-color').value = m.color;
+  document.getElementById('me-desc').value = m.desc;
+  // Familles
+  document.querySelectorAll('#me-familles input').forEach(cb => {
+    cb.checked = m.rules.familles && m.rules.familles.includes(cb.value);
+  });
+  // Tags
+  setTagInputValues('me-marques-incl', m.rules.marques_incl||[], 'incl');
+  setTagInputValues('me-marques-excl', m.rules.marques_excl||[], 'excl');
+  setTagInputValues('me-sf-incl', m.rules.sf_incl||[], 'incl');
+  setTagInputValues('me-sf-excl', m.rules.sf_excl||[], 'excl');
+  setTagInputValues('me-kw-incl', m.rules.kw_incl||[], 'incl');
+  setTagInputValues('me-kw-excl', m.rules.kw_excl||[], 'excl');
+  // Courant
+  document.getElementById('me-courant-min').value = m.rules.courant_min ?? '';
+  document.getElementById('me-courant-max').value = m.rules.courant_max ?? '';
+  updateMetierPreview();
+  renderMetiersList();
+}
+
+function saveMetier() {
+  const key = document.getElementById('me-key').value.trim();
+  if (!key) { showToast('La clé est obligatoire', true); return; }
+  const rules = {
+    familles: [...document.querySelectorAll('#me-familles input:checked')].map(cb => cb.value),
+    marques_incl: getTagInputValues('me-marques-incl'),
+    marques_excl: getTagInputValues('me-marques-excl'),
+    sf_incl: getTagInputValues('me-sf-incl'),
+    sf_excl: getTagInputValues('me-sf-excl'),
+    kw_incl: getTagInputValues('me-kw-incl'),
+    kw_excl: getTagInputValues('me-kw-excl'),
+    courant_min: document.getElementById('me-courant-min').value || null,
+    courant_max: document.getElementById('me-courant-max').value || null,
+  };
+  const updated = {
+    key, label: document.getElementById('me-label').value.trim(),
+    icon: document.getElementById('me-icon').value.trim() || '📦',
+    color: document.getElementById('me-color').value,
+    desc: document.getElementById('me-desc').value.trim(),
+    rules
+  };
+  const idx = metiersConfig.findIndex(x => x.key === currentMetierKey);
+  if (idx >= 0) metiersConfig[idx] = updated;
+  else metiersConfig.push(updated);
+  currentMetierKey = key;
+  document.getElementById('metier-editor-title').textContent = `${updated.icon} ${updated.label}`;
+  renderMetiersList(); updateMetierPreview();
+  showToast(`✅ Métier "${updated.label}" enregistré`);
+}
+
+function deleteMetier() {
+  if (!currentMetierKey) return;
+  if (!confirm(`Supprimer le métier "${currentMetierKey}" ?`)) return;
+  metiersConfig = metiersConfig.filter(x => x.key !== currentMetierKey);
+  currentMetierKey = null;
+  document.getElementById('metier-editor').style.display = 'none';
+  document.getElementById('metiers-placeholder').style.display = '';
+  renderMetiersList(); showToast('🗑️ Métier supprimé');
+}
+
+function createNewMetier() {
+  currentMetierKey = '__new__';
+  document.getElementById('metiers-placeholder').style.display = 'none';
+  document.getElementById('metier-editor').style.display = 'block';
+  document.getElementById('metier-editor-title').textContent = 'Nouveau métier';
+  document.getElementById('me-key').value = '';
+  document.getElementById('me-label').value = '';
+  document.getElementById('me-icon').value = '📦';
+  document.getElementById('me-color').value = '#3d5af1';
+  document.getElementById('me-desc').value = '';
+  document.querySelectorAll('#me-familles input').forEach(cb => cb.checked = false);
+  ['me-marques-incl','me-marques-excl','me-sf-incl','me-sf-excl','me-kw-incl','me-kw-excl'].forEach(id => setTagInputValues(id, [], 'incl'));
+  document.getElementById('me-courant-min').value = '';
+  document.getElementById('me-courant-max').value = '';
+  updateMetierPreview();
+}
+
+function updateMetierPreview() {
+  const el = document.getElementById('me-preview');
+  if (!allProducts.length) { el.innerHTML = '⚠️ Chargez un catalogue pour voir l\'aperçu'; return; }
+  const rules = {
+    familles: [...document.querySelectorAll('#me-familles input:checked')].map(cb => cb.value),
+    marques_incl: getTagInputValues('me-marques-incl'),
+    marques_excl: getTagInputValues('me-marques-excl'),
+    sf_incl: getTagInputValues('me-sf-incl'),
+    sf_excl: getTagInputValues('me-sf-excl'),
+    kw_incl: getTagInputValues('me-kw-incl'),
+    kw_excl: getTagInputValues('me-kw-excl'),
+    courant_min: document.getElementById('me-courant-min').value || null,
+    courant_max: document.getElementById('me-courant-max').value || null,
+  };
+  const count = countMetierProducts(rules);
+  const top = allProducts.filter(p => applyMetierRule(p, rules) && p.p).length;
+  el.className = 'preview-count' + (count === 0 ? ' zero' : '');
+  el.innerHTML = `Aperçu : <strong>${count} produits</strong> seraient inclus dans ce métier (dont ${top} en vedette)`;
+}
+
+// Tag input helpers
+function focusTagInput(wrap) { wrap.querySelector('.rule-tag-input').focus(); }
+function tagInputKey(e, input, type) {
+  if (e.key === 'Enter' || e.key === ',') {
+    e.preventDefault();
+    const val = input.value.trim();
+    if (val) { addTag(input.parentElement, val, type); input.value = ''; updateMetierPreview(); }
+  } else if (e.key === 'Backspace' && !input.value) {
+    const tags = input.parentElement.querySelectorAll('.rule-tag');
+    if (tags.length) { tags[tags.length-1].remove(); updateMetierPreview(); }
+  }
+}
+function addTag(wrap, val, type) {
+  const tag = document.createElement('span');
+  tag.className = 'rule-tag' + (type==='excl' ? ' excl' : '');
+  tag.dataset.val = val;
+  tag.innerHTML = `${esc(val)} <span class="rm" onclick="this.parentElement.remove();updateMetierPreview()">×</span>`;
+  wrap.insertBefore(tag, wrap.querySelector('.rule-tag-input'));
+}
+function setTagInputValues(id, values, type) {
+  const wrap = document.getElementById(id);
+  const inp = wrap.querySelector('.rule-tag-input');
+  wrap.querySelectorAll('.rule-tag').forEach(t => t.remove());
+  values.forEach(v => addTag(wrap, v, type));
+}
+function getTagInputValues(id) {
+  return [...document.getElementById(id).querySelectorAll('.rule-tag')].map(t => t.dataset.val).filter(Boolean);
+}
+
+// ── Export catalogue-pdf-metiers.html ──
+function exportMetiersCatalogue() {
+  if (!catalogueHTML) { showToast('Chargez d\'abord un catalogue', true); return; }
+  const allJSON = JSON.stringify(allProducts, null, 0);
+  const metiersJS = buildMetiersJS();
+  const html = buildMetiersCatalogueHTML(allJSON, metiersJS);
+  downloadFile(html, 'catalogue-pdf-metiers.html', 'text/html');
+  showToast('🗂️ catalogue-pdf-metiers.html généré — remplacez le fichier original');
+}
+
+function buildMetiersJS() {
+  return metiersConfig.map(m => {
+    const r = m.rules;
+    const lines = ['const f=p.famille||\'batteries\',t=p.t||\'\'','g=p.g||\'\'','m=p.m||\'\'','sf=p.sf||\'\'','s=p.s||{}'];
+    const conds = [];
+    if (r.familles && r.familles.length) conds.push(`!${JSON.stringify(r.familles)}.includes(f)`);
+    if (r.marques_incl && r.marques_incl.length) conds.push(`!${JSON.stringify(r.marques_incl)}.includes(m)`);
+    if (r.marques_excl && r.marques_excl.length) conds.push(`${JSON.stringify(r.marques_excl)}.includes(m)`);
+    if (r.sf_incl && r.sf_incl.length) conds.push(`!${JSON.stringify(r.sf_incl)}.some(x=>sf===x||sf.includes(x))`);
+    if (r.sf_excl && r.sf_excl.length) conds.push(`${JSON.stringify(r.sf_excl)}.some(x=>sf===x||sf.includes(x))`);
+    if (r.kw_incl && r.kw_incl.length) conds.push(`!${JSON.stringify(r.kw_incl)}.some(x=>g.includes(x)||t.includes(x))`);
+    if (r.kw_excl && r.kw_excl.length) conds.push(`${JSON.stringify(r.kw_excl)}.some(x=>g.includes(x)||t.includes(x))`);
+    if (r.courant_min !== null && r.courant_min !== '') {
+      conds.push(`(f==='charge-demarrage'&&(isNaN(parseFloat((s.courant_max||'').replace(/[^0-9.]/g,'')))||parseFloat((s.courant_max||'').replace(/[^0-9.]/g,''))<${r.courant_min}))`);
+    }
+    if (r.courant_max !== null && r.courant_max !== '') {
+      conds.push(`(f==='charge-demarrage'&&(isNaN(parseFloat((s.courant_max||'').replace(/[^0-9.]/g,'')))||parseFloat((s.courant_max||'').replace(/[^0-9.]/g,''))>${r.courant_max}))`);
+    }
+    const filterBody = conds.length
+      ? `{${lines.join(',')};if(${conds.join('||')})return false;return true;}`
+      : `{return true;}`;
+    return `  ${m.key}:{key:'${m.key}',label:${JSON.stringify(m.label)},icon:${JSON.stringify(m.icon)},color:${JSON.stringify(m.color)},desc:${JSON.stringify(m.desc)},filter:p=>${filterBody}}`;
+  }).join(',\n');
+}
+
+function buildMetiersCatalogueHTML(allJSON, metiersJS) {
+  // Read the original PDF métiers template structure and replace the data sections
+  // We generate a self-contained file reusing the visual template
+  if (catalogueHTML.includes('catalogue-pdf-metiers') || catalogueHTML.includes('const METIERS')) {
+    // Update existing metiers HTML
+    let html = catalogueHTML;
+    // Replace ALL array
+    const allRes = extractBracketContent(html, 'ALL=[{', '[') || extractBracketContent(html, 'const ALL = [', '[');
+    if (allRes) html = html.slice(0, allRes.start) + allJSON + html.slice(allRes.end);
+    // Replace METIERS
+    const mRes = extractBracketContent(html, 'const METIERS = {', '{');
+    if (mRes) html = html.slice(0, mRes.start) + '{\n' + metiersJS + '\n}' + html.slice(mRes.end);
+    return html;
+  }
+  // Fallback: inject into current catalogue (for standalone v8)
+  return generateMinimalMetiersHTML(allJSON, metiersJS);
+}
+
+function generateMinimalMetiersHTML(allJSON, metiersJS) {
+  // A minimal but functional métiers catalogue
+  return `<!DOCTYPE html>
+<html lang="fr"><head><meta charset="UTF-8">
+<title>AZ Energy — Catalogue PDF par Métier</title>
+<style>
+:root{--gold:#D4A847;--dark:#0a0a0a;--dark2:#111;--dark3:#1a1a1a;--txt:#e8e8e8;--txt2:#aaa;--txt3:#666;--radius:12px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--dark);color:var(--txt);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh}
+.hdr{background:var(--dark2);border-bottom:1px solid #222;padding:18px 32px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:100}
+.hdr-logo{font-size:22px;font-weight:800;letter-spacing:2px;color:var(--gold)}
+.hdr-logo span{color:var(--txt2);font-weight:300}
+.hero{padding:48px 32px 36px;text-align:center}
+.hero h1{font-size:28px;font-weight:800;margin-bottom:8px}.hero h1 span{color:var(--gold)}
+.metiers-section{max-width:1100px;margin:0 auto;padding:32px}
+.metiers-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px}
+.mc{background:var(--dark3);border:1px solid #252525;border-radius:var(--radius);padding:24px 20px;cursor:pointer;transition:all .2s}
+.mc:hover{border-color:var(--c,var(--gold));transform:translateY(-2px)}
+.mc-icon{font-size:32px;margin-bottom:10px}
+.mc-label{font-size:15px;font-weight:700;margin-bottom:4px}
+.mc-count{font-size:12px;color:var(--txt3)}
+.mc-bar{height:3px;border-radius:2px;margin-top:16px;background:var(--c,var(--gold));opacity:.6}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:200;align-items:center;justify-content:center}
+.modal-bg.on{display:flex}
+.modal{background:var(--dark3);border:1px solid #2a2a2a;border-radius:16px;padding:32px;max-width:480px;width:90%}
+.modal h3{font-size:20px;font-weight:700;margin-bottom:16px}
+.modal-btns{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
+.btn{padding:10px 22px;border-radius:8px;font-size:14px;font-weight:600;border:none;cursor:pointer}
+.btn-ghost{background:transparent;border:1px solid #333;color:var(--txt2)}
+.btn-primary{background:var(--gold);color:#000}
+.pv-hdr{background:var(--dark2);border-bottom:1px solid #222;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.btn-print{background:var(--gold);color:#000;padding:8px 20px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;border:none}
+.pages-container{max-width:900px;margin:24px auto;padding:0 16px;display:flex;flex-direction:column;gap:16px}
+.page-preview{background:#fff;color:#000;border-radius:8px;box-shadow:0 4px 24px rgba(0,0,0,.4);padding:15mm 15mm 12mm;font-family:'Segoe UI',Arial,sans-serif}
+#app{display:block}#print-view{display:none}
+@media print{#app{display:none}#print-view{display:block}.page-preview{box-shadow:none;border-radius:0;page-break-after:always}}
+</style></head><body>
+<div id="app">
+<div class="hdr"><div class="hdr-logo">AZ <span>Energy</span></div></div>
+<div class="hero"><h1>Catalogue <span>par Métier</span></h1></div>
+<div class="metiers-section"><div class="metiers-grid" id="metiers-grid"></div></div>
+</div>
+<div id="print-view"></div>
+<div class="modal-bg" id="modal"><div class="modal">
+<h3 id="modal-title"></h3>
+<p id="modal-info" style="font-size:13px;color:var(--txt2);margin-bottom:20px"></p>
+<div class="modal-btns">
+<button class="btn btn-ghost" onclick="closeModal()">Annuler</button>
+<button class="btn btn-primary" onclick="startGenerate()">Générer PDF</button>
+</div></div></div>
+<script>
+const ALL=${allJSON};
+const METIERS={${metiersJS}};
+let currentMetier=null;
+function initCards(){
+  const grid=document.getElementById('metiers-grid');
+  grid.innerHTML=Object.values(METIERS).map(m=>{
+    const total=ALL.filter(m.filter).length;
+    return\`<div class="mc" style="--c:\${m.color}" onclick="openModal('\${m.key}')">
+      <div class="mc-icon">\${m.icon}</div>
+      <div class="mc-label">\${m.label}</div>
+      <div class="mc-count">\${total} produits</div>
+      <div style="font-size:11px;color:#555;margin-top:6px">\${m.desc}</div>
+      <div class="mc-bar"></div></div>\`;
+  }).join('');
+}
+function openModal(key){
+  currentMetier=key;const m=METIERS[key];
+  const total=ALL.filter(m.filter).length;
+  document.getElementById('modal-title').textContent=m.icon+' '+m.label;
+  document.getElementById('modal-info').textContent=total+' produits — '+m.desc;
+  document.getElementById('modal').classList.add('on');
+}
+function closeModal(){document.getElementById('modal').classList.remove('on')}
+function startGenerate(){closeModal();alert('Fonctionnalité de génération PDF disponible dans la version complète.');}
+document.addEventListener('DOMContentLoaded',initCards);
+<\/script></body></html>`;
+}
+
+// ══════════════════════════════════════════════════════════════════
+// PDF PRODUCT IMPORT
+// ══════════════════════════════════════════════════════════════════
+function openPdfImport() {
+  document.getElementById('pdf-modal').classList.add('on');
+  document.getElementById('pdf-parsed').style.display = 'none';
+  document.getElementById('pdf-prog').style.display = 'none';
+  document.getElementById('pdf-create-btn').disabled = true;
+  document.getElementById('pdf-file-input').value = '';
+  parsedPdfSpecs = {};
+}
+function closePdfImport() {
+  document.getElementById('pdf-modal').classList.remove('on');
+}
+function handlePdfDrop(e) {
+  e.preventDefault();
+  document.getElementById('pdf-drop-zone').classList.remove('drag');
+  const file = e.dataTransfer.files[0];
+  if (file && file.type === 'application/pdf') processPdfFile(file);
+  else showToast('Fichier PDF requis', true);
+}
+function handlePdfUpload(input) {
+  const file = input.files[0];
+  if (file) processPdfFile(file);
+}
+
+async function processPdfFile(file) {
+  if (typeof pdfjsLib === 'undefined') {
+    showToast('PDF.js non chargé — vérifiez la connexion internet', true); return;
+  }
+  const prog = document.getElementById('pdf-prog');
+  const fill = document.getElementById('pdf-prog-fill');
+  const txt = document.getElementById('pdf-status-txt');
+  prog.style.display = 'block';
+  document.getElementById('pdf-parsed').style.display = 'none';
+  document.getElementById('pdf-create-btn').disabled = true;
+  txt.textContent = 'Lecture du fichier PDF…';
+  fill.style.width = '10%';
+  try {
+    const arrayBuffer = await file.arrayBuffer();
+    fill.style.width = '30%'; txt.textContent = 'Extraction du texte…';
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    let fullText = '';
+    for (let i = 1; i <= Math.min(pdf.numPages, 8); i++) {
+      const page = await pdf.getPage(i);
+      const content = await page.getTextContent();
+      fullText += content.items.map(it => it.str).join(' ') + '\n';
+      fill.style.width = (30 + i/pdf.numPages*50) + '%';
+    }
+    fill.style.width = '90%'; txt.textContent = 'Analyse des données…';
+    const parsed = parsePdfText(fullText);
+    fill.style.width = '100%';
+    displayParsedResult(parsed);
+  } catch(err) {
+    showToast('Erreur PDF : ' + err.message, true);
+    prog.style.display = 'none';
+  }
+}
+
+function parsePdfText(text) {
+  const lines = text.split(/\n/).map(l => l.trim()).filter(Boolean);
+  const result = { r:'', sap:'', d:'', m:'', sf:'', t:'', g:'', famille:'eclairages', specs:{}, confidence:0 };
+  let found = 0;
+
+  // Référence AZP pattern : 01_XXXX_XXX
+  const refMatch = text.match(/\b(0[1-9]_\d{4}_[0-9A-Z]{3,4})\b/);
+  if (refMatch) { result.r = refMatch[1]; found++; }
+
+  // SAP : 6 chiffres isolés
+  const sapMatch = text.match(/\bSAP[:\s]*(\d{6})\b|\b(\d{6})\b/);
+  if (sapMatch) { result.sap = sapMatch[1]||sapMatch[2]; found += 0.5; }
+
+  // Marques connues
+  const brands = ['AZP','FREEBATT','VARTA','TELWIN','ACEDIS','DURACELL','ENERGIZER','PHILIPS','PETZL','STANLEY','PANASONIC'];
+  for (const b of brands) {
+    if (text.includes(b)) { result.m = b; found++; break; }
+  }
+
+  // Famille / type
+  if (/lumen|lm\b|torche|frontale|lampe|lanterne|projecteur|éclairage|eclairage/i.test(text)) {
+    result.famille = 'eclairages'; result.sf = 'torches';
+  } else if (/pile[s]?\b|AAA|AA\b|LR\d|CR\d/i.test(text)) {
+    result.famille = 'piles';
+  } else if (/chargeur|charge.*batterie|charg/i.test(text)) {
+    result.famille = 'charge-demarrage'; result.sf = 'chargeurs';
+  } else if (/lubri|huile|viscosit/i.test(text)) {
+    result.famille = 'lubrifiants';
+  } else if (/\bAh\b|\bCCA\b|batterie/i.test(text)) {
+    result.famille = 'batteries'; result.sf = 'demarrage-vl';
+  }
+
+  // Description : chercher la première ligne non vide substantielle
+  for (const line of lines) {
+    if (line.length > 15 && line.length < 120 && !/^\d+$/.test(line) && !/^http/.test(line)) {
+      result.d = line; found++; break;
+    }
+  }
+
+  // Specs selon famille
+  const specs = {};
+  // Lumens
+  const lmMatch = text.match(/(\d[\d\s]*)\s*(?:lm|lumens?)\b/i);
+  if (lmMatch) specs.lm = lmMatch[1].replace(/\s/g,'') + ' lm';
+  // Autonomie
+  const autoMatch = text.match(/(\d+[\d.,]*)\s*h(?:eures?)?\b/i);
+  if (autoMatch) specs.autonomie = autoMatch[1] + ' h';
+  // Portée
+  const porteeMatch = text.match(/(\d+)\s*m(?:ètres?)?\b(?:\s*de\s*port[eé]e)?/i);
+  if (porteeMatch) specs.portee = porteeMatch[1] + ' m';
+  // IP
+  const ipMatch = text.match(/IP\s*(\d{2,3})/i);
+  if (ipMatch) specs.ip = 'IP' + ipMatch[1];
+  // Poids
+  const kgMatch = text.match(/(\d+[\d.,]*)\s*kg\b/i);
+  if (kgMatch) specs.kg = kgMatch[1] + ' kg';
+  // Dimensions
+  const dimMatch = text.match(/(\d+[\d,]*\s*[×x*]\s*\d+[\d,]*\s*[×x*]\s*\d+[\d,]*\s*mm)/i);
+  if (dimMatch) specs.dim = dimMatch[1];
+  // EAN / Gencod 13 chiffres
+  const eanMatch = text.match(/\b(3\d{12})\b/);
+  if (eanMatch) specs.gencod = eanMatch[1];
+  // Ah
+  const ahMatch = text.match(/(\d+[\d.,]*)\s*Ah\b/i);
+  if (ahMatch) specs.ah = ahMatch[1] + ' Ah';
+  // CCA
+  const ccaMatch = text.match(/(\d+)\s*A\s*\(EN\)/i) || text.match(/CCA[:\s]*(\d+)/i);
+  if (ccaMatch) specs.cca = ccaMatch[1] + ' A (EN)';
+  // Voltage
+  const vMatch = text.match(/(\d+)\s*[Vv](?:olts?)?\b/);
+  if (vMatch && ['6','12','24'].includes(vMatch[1])) specs.v = vMatch[1] + 'V';
+  // Prix HT
+  const prixMatch = text.match(/(\d+[.,]\d{2})\s*€?\s*(?:HT|ht)/i);
+  if (prixMatch) specs.prix_ht = prixMatch[1].replace(',','.') + ' €';
+
+  result.specs = specs;
+  result.confidence = Math.min(100, Math.round(found * 25 + Object.keys(specs).length * 10));
+  parsedPdfSpecs = specs;
+  return result;
+}
+
+function displayParsedResult(parsed) {
+  document.getElementById('pdf-prog').style.display = 'none';
+  document.getElementById('pdf-parsed').style.display = 'block';
+  document.getElementById('pdf-create-btn').disabled = false;
+
+  const setVal = (id, val, found) => {
+    const el = document.getElementById(id);
+    el.value = val || '';
+    el.className = (found && val) ? 'found' : '';
+  };
+  setVal('pi-r', parsed.r, !!parsed.r);
+  setVal('pi-sap', parsed.sap, !!parsed.sap);
+  setVal('pi-d', parsed.d, !!parsed.d);
+  setVal('pi-m', parsed.m, !!parsed.m);
+  setVal('pi-sf', parsed.sf, !!parsed.sf);
+  setVal('pi-t', parsed.t, !!parsed.t);
+  document.getElementById('pi-famille').value = parsed.famille || 'eclairages';
+
+  const badge = document.getElementById('pdf-confidence-badge');
+  const conf = parsed.confidence;
+  badge.textContent = conf + '% confiance';
+  badge.className = 'confidence-badge ' + (conf >= 60 ? 'high' : conf >= 30 ? 'med' : 'low');
+
+  const specsEl = document.getElementById('pdf-specs-preview');
+  const specLines = Object.entries(parsed.specs).map(([k,v]) => `${k}: ${v}`);
+  specsEl.textContent = specLines.length ? specLines.join('\n') : '(aucune spec détectée)';
+}
+
+function createFromPdf() {
+  const prefill = {
+    id: '', r: document.getElementById('pi-r').value.trim(),
+    sap: document.getElementById('pi-sap').value.trim(),
+    d: document.getElementById('pi-d').value.trim(),
+    m: document.getElementById('pi-m').value.trim(),
+    sf: document.getElementById('pi-sf').value.trim(),
+    t: document.getElementById('pi-t').value.trim(),
+    g: '', famille: document.getElementById('pi-famille').value,
+    s: parsedPdfSpecs, n: true, p: false, e: false
+  };
+  closePdfImport();
+  createNewProduct(prefill);
+  showToast('📄 Produit pré-rempli depuis le PDF — vérifiez et enregistrez');
+}
+
+// ══════════════════════════════════════════════════════════════════
+// UI HELPERS
+// ══════════════════════════════════════════════════════════════════
+function setStatus(type, msg) {
+  const el = document.getElementById('status');
+  el.textContent = msg; el.className = type;
+}
+let toastTimer;
+function showToast(msg, isErr=false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = isErr ? 'show err' : 'show';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.className = '', 3500);
+}
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ══════════════════════════════════════════════════════════════════
+// KEYBOARD SHORTCUTS
+// ══════════════════════════════════════════════════════════════════
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey||e.metaKey) && e.key==='s') { e.preventDefault(); if(document.getElementById('editor').style.display!=='none') saveProduct(); }
+  if ((e.ctrlKey||e.metaKey) && e.key==='o') { e.preventDefault(); triggerLoad(); }
+  if ((e.ctrlKey||e.metaKey) && e.key==='e') { e.preventDefault(); saveCatalogue(); }
+  if (e.key==='Escape') closePdfImport();
+});
+
+// Live preview update on rule changes
+document.querySelectorAll('#me-familles input').forEach(cb => cb.addEventListener('change', updateMetierPreview));
+document.getElementById('me-courant-min').addEventListener('input', updateMetierPreview);
+document.getElementById('me-courant-max').addEventListener('input', updateMetierPreview);
+</script>
+</body>
+</html>
