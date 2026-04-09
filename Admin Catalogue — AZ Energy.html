@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin Catalogue — AZ Energy</title>
 <script src="./Admin Catalogue — AZ Energy_files/pdf.min.js.téléchargement"></script>
+<script src="./Admin Catalogue — AZ Energy_files/xlsx.full.min.js.téléchargement"></script>
 <style>
 :root {
   --bg: #f4f5f7;
@@ -50,31 +51,88 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .tab-btn.active{color:#fff;background:var(--bg);border-bottom:2px solid var(--accent)}
 
 /* ── MAIN LAYOUT (Products tab) ── */
-#tab-products{display:grid;grid-template-columns:300px 1fr;flex:1;overflow:hidden}
+#tab-products{display:none;flex:1;overflow:hidden}
+#tab-products.active-tab{display:grid;grid-template-columns:300px 1fr}
 #tab-metiers{display:none;flex:1;overflow:hidden;gap:0}
 #tab-metiers.active-tab{display:flex}
-#tab-products.active-tab{display:grid}
 
 /* ── SIDEBAR ── */
 #sidebar{background:var(--sidebar-bg);color:#e8eaf0;display:flex;flex-direction:column;overflow:hidden;border-right:1px solid rgba(255,255,255,.06)}
-#sidebar-header{padding:14px 14px 10px;flex-shrink:0}
-#search{width:100%;padding:8px 12px;border-radius:6px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.07);color:#fff;font-size:13px;outline:none}
-#search::placeholder{color:rgba(255,255,255,.35)}
-#search:focus{border-color:var(--accent);background:rgba(255,255,255,.1)}
-#filters{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
-.f-sel{padding:6px 8px;border-radius:5px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.07);color:#e8eaf0;font-size:12px;outline:none;cursor:pointer}
+#sidebar-header{padding:12px 12px 8px;flex-shrink:0}
+
+/* Search bar */
+.search-wrap{position:relative;margin-bottom:10px}
+#search{width:100%;padding:8px 34px 8px 34px;border-radius:7px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.07);color:#fff;font-size:13px;outline:none;transition:.15s}
+#search::placeholder{color:rgba(255,255,255,.3)}
+#search:focus{border-color:var(--accent);background:rgba(255,255,255,.1);box-shadow:0 0 0 3px rgba(61,90,241,.2)}
+.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:13px;pointer-events:none;opacity:.4}
+.search-clear{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:20px;height:20px;border-radius:50%;border:none;background:rgba(255,255,255,.15);color:#fff;font-size:12px;cursor:pointer;display:none;align-items:center;justify-content:center;transition:.12s;line-height:1}
+.search-clear:hover{background:rgba(255,255,255,.3)}
+.search-clear.visible{display:flex}
+
+/* Sort row */
+.sort-row{display:flex;align-items:center;gap:6px;margin-bottom:8px}
+.sort-row label{font-size:10px;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.4px;flex-shrink:0}
+#sort-sel{flex:1;padding:4px 6px;border-radius:5px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.06);color:#e8eaf0;font-size:11px;outline:none;cursor:pointer}
+#sort-sel option{background:#1c2235}
+.search-scope-btn{padding:4px 8px;border-radius:5px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.06);color:rgba(255,255,255,.45);font-size:10px;cursor:pointer;transition:.12s;white-space:nowrap}
+.search-scope-btn.on{background:rgba(61,90,241,.25);border-color:var(--accent);color:#9db4ff}
+.search-scope-btn:hover{border-color:rgba(255,255,255,.25);color:rgba(255,255,255,.7)}
+
+/* Famille pills */
+.fam-pills-label{font-size:10px;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;padding:0 2px}
+.fam-pills{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px}
+.fam-pill{padding:4px 9px;border-radius:5px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.06);color:rgba(255,255,255,.5);font-size:11px;font-weight:500;cursor:pointer;transition:.15s;display:flex;align-items:center;gap:5px;white-space:nowrap}
+.fam-pill:hover{background:rgba(255,255,255,.12);color:#fff}
+.fam-pill.active{color:#fff;border-color:var(--fam-c,var(--accent));background:color-mix(in srgb,var(--fam-c,var(--accent)) 20%,transparent)}
+.fam-pill .pill-count{font-size:9px;background:rgba(255,255,255,.12);padding:1px 5px;border-radius:3px;font-weight:700}
+.fam-pill.active .pill-count{background:rgba(255,255,255,.2)}
+
+/* Sub-filters row */
+.sub-filters{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:8px}
+.f-sel{padding:5px 7px;border-radius:5px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.06);color:#e8eaf0;font-size:11px;outline:none;cursor:pointer;transition:.12s}
 .f-sel option{background:#1c2235;color:#e8eaf0}
 .f-sel:focus{border-color:var(--accent)}
-#sidebar-stats{padding:6px 14px;font-size:11px;color:rgba(255,255,255,.4);flex-shrink:0;border-bottom:1px solid rgba(255,255,255,.06)}
+.f-sel.active{border-color:var(--accent);background:rgba(61,90,241,.15);color:#9db4ff}
+
+/* Status chips */
+.status-chips{display:flex;gap:5px;margin-bottom:8px}
+.status-chip{padding:4px 9px;border-radius:5px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.06);color:rgba(255,255,255,.45);font-size:11px;cursor:pointer;transition:.12s;display:flex;align-items:center;gap:4px}
+.status-chip:hover{background:rgba(255,255,255,.1);color:#fff}
+.status-chip.on-new{background:rgba(13,203,142,.2);border-color:#0dcb8e;color:#0dcb8e}
+.status-chip.on-promo{background:rgba(245,166,35,.2);border-color:#f5a623;color:#f5a623}
+.status-chip.on-epuise{background:rgba(232,72,72,.2);border-color:#e84848;color:#ff8080}
+
+/* Active filters chips */
+#active-filters{display:flex;flex-wrap:wrap;gap:4px;padding:0 2px 8px;min-height:0}
+#active-filters:empty{display:none}
+.af-chip{display:flex;align-items:center;gap:5px;padding:3px 8px;border-radius:4px;background:rgba(61,90,241,.25);border:1px solid rgba(61,90,241,.4);font-size:10px;color:#9db4ff}
+.af-chip .rm{cursor:pointer;opacity:.7;font-size:12px}.af-chip .rm:hover{opacity:1}
+#clear-all-btn{font-size:10px;color:rgba(255,255,255,.3);background:none;border:none;cursor:pointer;padding:2px 4px;text-decoration:underline;margin-left:auto;white-space:nowrap}
+#clear-all-btn:hover{color:rgba(255,255,255,.6)}
+
+/* Stats bar */
+#sidebar-stats{padding:5px 14px;font-size:11px;color:rgba(255,255,255,.4);flex-shrink:0;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:space-between}
+#sidebar-stats .stat-count{color:rgba(255,255,255,.65);font-weight:600}
+
+/* Product list */
 #product-list{flex:1;overflow-y:auto;padding:0 6px 12px}
 #product-list::-webkit-scrollbar{width:4px}
 #product-list::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:4px}
-.prod-item{padding:9px 10px;border-radius:6px;cursor:pointer;margin-bottom:2px;transition:.12s;display:flex;flex-direction:column;gap:2px}
+.prod-item{padding:9px 10px;border-radius:6px;cursor:pointer;margin-bottom:2px;transition:.12s;display:flex;flex-direction:column;gap:2px;position:relative}
 .prod-item:hover{background:var(--sidebar-hover)}
 .prod-item.active{background:var(--sidebar-active)}
+.prod-item.kb-focus{outline:2px solid var(--accent);outline-offset:-2px}
 .prod-ref{font-size:12px;font-weight:600;color:#e8eaf0;font-family:'SF Mono',Consolas,monospace}
 .prod-desc{font-size:11px;color:rgba(255,255,255,.45);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .prod-meta{display:flex;gap:5px;margin-top:2px}
+mark.hl{background:rgba(255,200,60,.35);color:#ffe57a;border-radius:2px;padding:0 1px}
+
+/* Empty state */
+.empty-state{text-align:center;padding:32px 16px;color:rgba(255,255,255,.3);font-size:12px;display:flex;flex-direction:column;align-items:center;gap:10px}
+.empty-state .empty-icon{font-size:32px;opacity:.3}
+.empty-state .reset-btn{padding:7px 16px;border-radius:6px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.06);color:rgba(255,255,255,.5);font-size:12px;cursor:pointer;transition:.12s}
+.empty-state .reset-btn:hover{border-color:var(--accent);color:var(--accent)}
 .badge{font-size:9px;padding:2px 5px;border-radius:3px;font-weight:600;text-transform:uppercase;letter-spacing:.3px}
 .badge.bat{background:#1e3a5f;color:#6aadff}
 .badge.pil{background:#1e3d1e;color:#6de06d}
@@ -138,7 +196,7 @@ textarea{resize:vertical;min-height:64px}
 #photo-file-input{display:none}
 
 /* ── PDF MÉTIERS TAB ── */
-#metiers-sidebar{width:280px;background:var(--sidebar-bg);color:#e8eaf0;display:flex;flex-direction:column;overflow:hidden;border-right:1px solid rgba(255,255,255,.06)}
+#metiers-sidebar{width:280px;flex-shrink:0;background:var(--sidebar-bg);color:#e8eaf0;display:flex;flex-direction:column;overflow:hidden;border-right:1px solid rgba(255,255,255,.06)}
 #metiers-sidebar-header{padding:16px 14px 10px;flex-shrink:0;border-bottom:1px solid rgba(255,255,255,.06)}
 #metiers-sidebar-header h3{font-size:13px;font-weight:700;color:#fff;margin-bottom:10px}
 .add-metier-btn{width:100%;padding:9px;border-radius:6px;border:2px dashed rgba(255,255,255,.2);background:transparent;color:rgba(255,255,255,.5);font-size:12px;cursor:pointer;transition:.15s;text-align:center;margin-top:8px}
@@ -153,7 +211,7 @@ textarea{resize:vertical;min-height:64px}
 .metier-count{font-size:11px;color:rgba(255,255,255,.4);margin-top:2px}
 .metier-color-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 
-#metiers-editor-wrap{flex:1;overflow-y:auto;background:var(--bg);padding:24px 28px}
+#metiers-editor-wrap{flex:1;min-width:0;overflow-y:auto;background:var(--bg);padding:24px 28px}
 #metiers-editor-wrap::-webkit-scrollbar{width:6px}
 #metiers-editor-wrap::-webkit-scrollbar-thumb{background:var(--border);border-radius:6px}
 #metiers-placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:16px;color:var(--text3);font-size:14px}
@@ -228,6 +286,66 @@ textarea{resize:vertical;min-height:64px}
 #toast{position:fixed;bottom:24px;right:24px;background:#1c2235;color:#fff;padding:12px 20px;border-radius:8px;font-size:13px;box-shadow:0 4px 20px rgba(0,0,0,.3);transform:translateY(80px);opacity:0;transition:.25s;z-index:999;border-left:3px solid var(--accent2)}
 #toast.show{transform:translateY(0);opacity:1}
 #toast.err{border-color:var(--danger)}
+
+/* ── MODAL OVERLAY ── */
+.modal-overlay{position:fixed;inset:0;z-index:800;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:20px}
+.modal-box{background:var(--card);border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.25);max-height:90vh;display:flex;flex-direction:column;width:100%}
+.modal-box.sm{max-width:520px}
+.modal-box.md{max-width:780px}
+.modal-box.lg{max-width:1100px}
+.modal-hdr{padding:18px 22px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.modal-hdr h3{font-size:15px;font-weight:700;color:var(--text)}
+.modal-close{background:none;border:none;font-size:18px;cursor:pointer;color:var(--text3);padding:2px 6px;border-radius:4px;line-height:1}
+.modal-close:hover{background:var(--border);color:var(--text)}
+.modal-body{padding:20px 22px;overflow-y:auto;flex:1}
+.modal-foot{padding:14px 22px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-shrink:0}
+
+/* ── SF SELECT FIELD ── */
+.sf-select-wrap{display:flex;gap:6px;align-items:stretch}
+.tg-select-wrap{display:flex;flex-direction:column;gap:5px}
+.tg-custom-input{padding:7px 10px;border-radius:6px;border:1px solid var(--input-border);background:var(--input-bg);color:var(--text);font-size:13px;width:100%;outline:none;transition:.13s}
+.tg-custom-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(61,90,241,.12)}
+.sf-select-wrap select{flex:1}
+.sf-manage-btn{padding:0 10px;border-radius:6px;border:1px solid var(--input-border);background:var(--input-bg);color:var(--text2);font-size:12px;cursor:pointer;white-space:nowrap;transition:.13s}
+.sf-manage-btn:hover{background:var(--border);color:var(--text)}
+
+/* ── SF MANAGER MODAL ── */
+.sf-manager-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.sf-fam-col{background:var(--input-bg);border:1px solid var(--border);border-radius:8px;padding:14px}
+.sf-fam-col h4{font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.sf-tag-list{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;min-height:32px}
+.sf-tag{display:inline-flex;align-items:center;gap:4px;background:var(--bg);border:1px solid var(--border);border-radius:14px;padding:3px 10px;font-size:12px;color:var(--text2)}
+.sf-tag .del-tag{cursor:pointer;color:var(--text3);font-size:14px;line-height:1;margin-left:2px}
+.sf-tag .del-tag:hover{color:var(--danger)}
+.sf-add-row{display:flex;gap:6px;margin-top:4px}
+.sf-add-row input{flex:1;padding:5px 8px;border-radius:5px;border:1px solid var(--input-border);background:var(--card);font-size:12px;color:var(--text)}
+.sf-add-row button{padding:5px 10px;border-radius:5px;border:none;background:var(--accent);color:#fff;font-size:12px;cursor:pointer}
+
+/* ── MÉTIERS CHECKBOXES ── */
+.metiers-check-grid{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.metier-cb-label{display:flex;align-items:center;gap:7px;padding:6px 12px;border:1px solid var(--border);border-radius:7px;cursor:pointer;transition:.13s;font-size:12px;color:var(--text2);background:var(--input-bg)}
+.metier-cb-label:hover{border-color:var(--accent);background:rgba(61,90,241,.05)}
+.metier-cb-label input[type=checkbox]{accent-color:var(--accent);width:14px;height:14px;cursor:pointer}
+.metier-cb-label.checked{border-color:var(--accent);background:rgba(61,90,241,.07);color:var(--text);font-weight:500}
+
+/* ── EXCEL IMPORT ── */
+.xlsx-drop-zone{border:2px dashed var(--border);border-radius:10px;padding:32px 20px;text-align:center;cursor:pointer;transition:.15s;color:var(--text3)}
+.xlsx-drop-zone:hover,.xlsx-drop-zone.over{border-color:var(--accent);background:rgba(61,90,241,.04);color:var(--text2)}
+.xlsx-drop-zone .drop-icon{font-size:36px;margin-bottom:10px}
+.xlsx-drop-zone p{font-size:13px;margin-bottom:6px}
+.xlsx-drop-zone small{font-size:11px;color:var(--text3)}
+.import-preview-wrap{overflow-x:auto;max-height:360px;overflow-y:auto;border:1px solid var(--border);border-radius:8px}
+.import-preview-wrap table{width:100%;border-collapse:collapse;font-size:12px}
+.import-preview-wrap th{background:var(--bg);padding:7px 10px;text-align:left;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:1;color:var(--text2);font-weight:600;white-space:nowrap}
+.import-preview-wrap td{padding:6px 10px;border-bottom:1px solid var(--border);color:var(--text);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.import-preview-wrap tr:hover td{background:rgba(61,90,241,.03)}
+.import-preview-wrap tr.skip-row td{opacity:.4;text-decoration:line-through}
+.import-stats{font-size:12px;color:var(--text2);margin-bottom:12px}
+.import-stats strong{color:var(--accent)}
+.col-map-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:16px}
+.col-map-item{display:flex;flex-direction:column;gap:4px}
+.col-map-item label{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em}
+.col-map-item select{padding:5px 8px;border-radius:5px;border:1px solid var(--input-border);background:var(--input-bg);font-size:12px;color:var(--text)}
 </style>
 </head>
 <body>
@@ -241,9 +359,10 @@ textarea{resize:vertical;min-height:64px}
   <button class="tb-btn success" id="save-btn" onclick="saveCatalogue()">💾 Sauvegarder</button>
   <button class="tb-btn secondary" id="new-prod-btn" onclick="createNewProduct()">➕ Nouveau produit</button>
   <button class="tb-btn pdf-import" onclick="openPdfImport()">📄 Importer PDF produit</button>
+  <button class="tb-btn secondary" id="xlsx-import-btn" onclick="openXlsxImport()" title="Importer des produits depuis un fichier Excel">📊 Import Excel</button>
   <div class="sep"></div>
   <button class="tb-btn secondary" id="export-metiers-btn" onclick="exportMetiersCatalogue()" title="Générer catalogue-pdf-metiers.html mis à jour">🗂️ Exporter métiers</button>
-  <div id="status" class="ok">✅ 845 produits — 774 photos</div>
+  <div id="status" class="ok">✅ 1169 produits — 774 photos</div>
 </div>
 
 <!-- TAB BAR -->
@@ -257,285 +376,260 @@ textarea{resize:vertical;min-height:64px}
   <!-- SIDEBAR -->
   <div id="sidebar">
     <div id="sidebar-header">
-      <input type="text" id="search" placeholder="🔍  Référence, description, marque…" oninput="renderList()">
-      <div id="filters">
-        <select class="f-sel" id="f-famille" onchange="renderList()">
-          <option value="">Toutes familles</option>
-          <option value="batteries">Batteries</option>
-          <option value="piles">Piles</option>
-          <option value="eclairages">Éclairages</option>
-          <option value="charge-demarrage">Charge &amp; Démarrage</option>
-          <option value="lubrifiants">Lubrifiants</option>
-        </select>
-        <select class="f-sel" id="f-marque" onchange="renderList()"><option value="">Toutes marques</option><option value="ACEDIS">ACEDIS</option><option value="AZP">AZP</option><option value="CAMELION">CAMELION</option><option value="CEGASA">CEGASA</option><option value="EXIDE">EXIDE</option><option value="FREEBATT">FREEBATT</option><option value="KODAK">KODAK</option><option value="RENATA">RENATA</option><option value="SAFT">SAFT</option><option value="TELWIN">TELWIN</option><option value="VARTA">VARTA</option></select>
-        <select class="f-sel" id="f-sf" onchange="renderList()">
-          <option value="">Toutes s/familles</option>
-        </select>
-        <select class="f-sel" id="f-flag" onchange="renderList()">
-          <option value="">Tous statuts</option>
-          <option value="new">Nouveauté</option>
-          <option value="promo">Promo/Prix</option>
-          <option value="epuise">Épuisé</option>
-        </select>
+      <!-- Search -->
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="search" placeholder="Référence, description, marque, spec…" oninput="onSearchInput()" onkeydown="onSearchKey(event)" autocomplete="off" spellcheck="false">
+        <button class="search-clear" id="search-clear" onclick="clearSearch()" title="Effacer">×</button>
       </div>
+      <!-- Sort + scope -->
+      <div class="sort-row">
+        <label>Tri</label>
+        <select id="sort-sel" onchange="renderList()">
+          <option value="ref-az">Réf A→Z</option>
+          <option value="ref-za">Réf Z→A</option>
+          <option value="desc-az">Description A→Z</option>
+          <option value="marque-az">Marque A→Z</option>
+        </select>
+        <button class="search-scope-btn" id="scope-specs-btn" onclick="toggleSpecScope()" title="Inclure les valeurs des specs dans la recherche">+ Specs</button>
+      </div>
+      <!-- Famille pills -->
+      <div class="fam-pills-label">Famille</div>
+      <div class="fam-pills" id="fam-pills">
+        <button class="fam-pill active" data-fam="" style="--fam-c:#8890a8" onclick="setFamille(&#39;&#39;)">Toutes <span class="pill-count" id="cnt-all">1169</span></button>
+        <button class="fam-pill" data-fam="batteries" style="--fam-c:#6aadff" onclick="setFamille(&#39;batteries&#39;)">🔋 Bat. <span class="pill-count" id="cnt-batteries">589</span></button>
+        <button class="fam-pill" data-fam="piles" style="--fam-c:#6de06d" onclick="setFamille(&#39;piles&#39;)">🔌 Piles <span class="pill-count" id="cnt-piles">289</span></button>
+        <button class="fam-pill" data-fam="eclairages" style="--fam-c:#ffb84d" onclick="setFamille(&#39;eclairages&#39;)">💡 Écl. <span class="pill-count" id="cnt-eclairages">143</span></button>
+        <button class="fam-pill" data-fam="charge-demarrage" style="--fam-c:#c97dff" onclick="setFamille(&#39;charge-demarrage&#39;)">⚡ C&amp;D <span class="pill-count" id="cnt-charge">148</span></button>
+        <button class="fam-pill" data-fam="lubrifiants" style="--fam-c:#7de07d" onclick="setFamille(&#39;lubrifiants&#39;)">🛢️ Lub. <span class="pill-count" id="cnt-lubrifiants">0</span></button>
+      </div>
+      <!-- Sub-filters -->
+      <div class="sub-filters">
+        <select class="f-sel active" id="f-marque" onchange="renderList()"><option value="">Toutes marques</option><option value="ACEDIS">ACEDIS</option><option value="AQIILA">AQIILA</option><option value="AZP">AZP</option><option value="BLUETTI">BLUETTI</option><option value="CAMELION">CAMELION</option><option value="CEGASA">CEGASA</option><option value="EXIDE">EXIDE</option><option value="FREEBATT">FREEBATT</option><option value="GP">GP</option><option value="KODAK">KODAK</option><option value="RENATA">RENATA</option><option value="SAFT">SAFT</option><option value="TELWIN">TELWIN</option><option value="VARTA">VARTA</option></select>
+        <select class="f-sel" id="f-sf" onchange="renderList()"><option value="">Toutes s/familles</option><option value="accessoires-cables">accessoires-cables</option><option value="accessoires-energie">accessoires-energie</option><option value="batterie-cyclage">batterie-cyclage</option><option value="batterie-gel">batterie-gel</option><option value="batterie-industrie">batterie-industrie</option><option value="batterie-stationnaire">batterie-stationnaire</option><option value="charge-start">charge-start</option><option value="chargeurs">chargeurs</option><option value="demarrage-commercial">demarrage-commercial</option><option value="demarrage-vl">demarrage-vl</option><option value="demarreurs-lithium">demarreurs-lithium</option><option value="frontales">frontales</option><option value="lampes-travail">lampes-travail</option><option value="lanternes">lanternes</option><option value="marine-loisirs">marine-loisirs</option><option value="piles-electroniques">piles-electroniques</option><option value="piles-rechargeables">piles-rechargeables</option><option value="piles-speciales">piles-speciales</option><option value="piles-standard">piles-standard</option><option value="projecteurs">projecteurs</option><option value="testeurs-batteries">testeurs-batteries</option><option value="torches">torches</option></select>
+      </div>
+      <!-- Status chips -->
+      <div class="status-chips">
+        <button class="status-chip" id="chip-new" onclick="toggleStatusChip(&#39;new&#39;)">🆕 Nouveauté</button>
+        <button class="status-chip" id="chip-promo" onclick="toggleStatusChip(&#39;promo&#39;)">🏷️ Prix</button>
+        <button class="status-chip" id="chip-epuise" onclick="toggleStatusChip(&#39;epuise&#39;)">⚠️ Épuisé</button>
+      </div>
+      <!-- Active filters -->
+      <div id="active-filters"><span class="af-chip">🏭 BLUETTI<span class="rm" onclick="afRemove(0)">×</span></span><button id="clear-all-btn" onclick="clearAllFilters()">Tout effacer</button></div>
     </div>
-    <div id="sidebar-stats">64 produits • 845 au total</div>
-    <div id="product-list"><div class="prod-item active" onclick="openProduct(&#39;T-Charge 12&#39;)">
-      <div class="prod-ref">T-Charge 12</div>
-      <div class="prod-desc">Telwin T-Charge 12 — 6/12V 59W 4A IP65</div>
-      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span><span class="badge promo">PRIX</span></div>
-    </div><div class="prod-item " onclick="openProduct(&#39;T-Charge 20&#39;)">
-      <div class="prod-ref">T-Charge 20</div>
-      <div class="prod-desc">Telwin T-Charge 20 — 12/24V 115W 8A</div>
-      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span><span class="badge promo">PRIX</span></div>
-    </div><div class="prod-item " onclick="openProduct(&#39;T-Charge 12 EVO&#39;)">
-      <div class="prod-ref">T-Charge 12 EVO</div>
-      <div class="prod-desc">Telwin T-Charge 12 EVO — 6/12V 59W 4A NEW</div>
-      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span><span class="badge new">NEW</span><span class="badge promo">PRIX</span></div>
-    </div><div class="prod-item " onclick="openProduct(&#39;T-Charge 20 EVO&#39;)">
-      <div class="prod-ref">T-Charge 20 EVO</div>
-      <div class="prod-desc">Telwin T-Charge 20 EVO — 12/24V 115W 8A NEW</div>
-      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span><span class="badge new">NEW</span><span class="badge promo">PRIX</span></div>
-    </div><div class="prod-item " onclick="openProduct(&#39;T-Charge 26 EVO&#39;)">
-      <div class="prod-ref">T-Charge 26 EVO</div>
-      <div class="prod-desc">Telwin T-Charge 26 EVO — 12/24V 232W 16A NEW</div>
-      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span><span class="badge new">NEW</span><span class="badge promo">PRIX</span></div>
-    </div><div class="prod-item " onclick="openProduct(&#39;Pulse 30 EVO&#39;)">
-      <div class="prod-ref">Pulse 30 EVO</div>
-      <div class="prod-desc">Telwin Pulse 30 EVO — 12/24V 369W 27A</div>
-      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span><span class="badge promo">PRIX</span></div>
-    </div><div class="prod-item " onclick="openProduct(&#39;Pulse 50 EVO&#39;)">
-      <div class="prod-ref">Pulse 50 EVO</div>
-      <div class="prod-desc">Telwin Pulse 50 EVO — 12/24V 610W 45A</div>
-      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span><span class="badge promo">PRIX</span></div>
-    </div><div class="prod-item " onclick="openProduct(&#39;Doctor Charge 50&#39;)">
-      <div class="prod-ref">Doctor Charge 50</div>
-      <div class="prod-desc">Telwin Doctor Charge 50 — 6/12/24V 610W 45A</div>
-      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span><span class="badge promo">PRIX</span></div>
-    </div><div class="prod-item " onclick="openProduct(&#39;Doctor Charge 55 Connect&#39;)">
-      <div class="prod-ref">Doctor Charge 55 Connect</div>
-      <div class="prod-desc">Telwin Doctor Charge 55 Connect — 6/12/24V 610W 45A Bluetooth</div>
-      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span><span class="badge promo">PRIX</span></div>
-    </div><div class="prod-item " onclick="openProduct(&#39;Doctor Charge 130&#39;)">
-      <div class="prod-ref">Doctor Charge 130</div>
-      <div class="prod-desc">Telwin Doctor Charge 130 — 12/16/24V 1800W 140A</div>
-      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span><span class="badge promo">PRIX</span></div>
-    </div><div class="prod-item " onclick="openProduct(&#39;Doctor Charge 131&#39;)">
-      <div class="prod-ref">Doctor Charge 131</div>
-      <div class="prod-desc">Telwin Doctor Charge 131 — 12/16/24V 1800W 140A NEW</div>
-      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span><span class="badge new">NEW</span><span class="badge promo">PRIX</span></div>
-    </div><div class="prod-item " onclick="openProduct(&#39;Doctor Charge 155 Connect&#39;)">
-      <div class="prod-ref">Doctor Charge 155 Connect</div>
-      <div class="prod-desc">Telwin Doctor Charge 155 Connect — 12/16/24V 2200W 150A NEW</div>
-      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span><span class="badge new">NEW</span><span class="badge promo">PRIX</span></div>
-    </div><div class="prod-item " onclick="openProduct(&#39;Computer 48/2 Prof&#39;)">
-      <div class="prod-ref">Computer 48/2 Prof</div>
-      <div class="prod-desc">Telwin Computer 48/2 Prof — 6/12/24/36/48V 1000W 2A</div>
-      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span><span class="badge promo">PRIX</span></div>
-    </div><div class="prod-item " onclick="openProduct(&#39;Alpine 15&#39;)">
-      <div class="prod-ref">Alpine 15</div>
-      <div class="prod-desc">Telwin Alpine 15 — 12/24V 110W 9A</div>
-      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span><span class="badge promo">PRIX</span></div>
-    </div><div class="prod-item " onclick="openProduct(&#39;Alpine 18 Boost&#39;)">
-      <div class="prod-ref">Alpine 18 Boost</div>
-      <div class="prod-desc">Telwin Alpine 18 Boost — 12/24V 200W 14A Boost</div>
-      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span><span class="badge promo">PRIX</span></div>
-    </div><div class="prod-item " onclick="openProduct(&#39;Alpine 20 Boost&#39;)">
-      <div class="prod-ref">Alpine 20 Boost</div>
-      <div class="prod-desc">Telwin Alpine 20 Boost — 12/24V 300W 18A Boost</div>
-      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span><span class="badge promo">PRIX</span></div>
-    </div><div class="prod-item " onclick="openProduct(&#39;Alpine 30 Boost&#39;)">
-      <div class="prod-ref">Alpine 30 Boost</div>
-      <div class="prod-desc">Telwin Alpine 30 Boost — 12/24V 800W 30A Boost</div>
-      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span><span class="badge promo">PRIX</span></div>
-    </div><div class="prod-item " onclick="openProduct(&#39;Alpine 50 Boost&#39;)">
-      <div class="prod-ref">Alpine 50 Boost</div>
-      <div class="prod-desc">Telwin Alpine 50 Boost — 12/24V 1000W 45A Boost</div>
-      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span><span class="badge promo">PRIX</span></div>
-    </div><div class="prod-item " onclick="openProduct(&#39;Alpine 21i&#39;)">
-      <div class="prod-ref">Alpine 21i</div>
-      <div class="prod-desc">Telwin Alpine 21i — 12/24V 118W 9A Tronic</div>
-      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span><span class="badge promo">PRIX</span></div>
-    </div><div class="prod-item " onclick="openProduct(&#39;Alpine 26i&#39;)">
-      <div class="prod-ref">Alpine 26i</div>
-      <div class="prod-desc">Telwin Alpine 26i — 12/24V 226W 16.5A Tronic</div>
-      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span><span class="badge promo">PRIX</span></div>
-    </div><div class="prod-item " onclick="openProduct(&#39;Alpine 51i&#39;)">
-      <div class="prod-ref">Alpine 51i</div>
-      <div class="prod-desc">Telwin Alpine 51i — 12/24V 560W 34A Tronic Boost</div>
-      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span><span class="badge promo">PRIX</span></div>
-    </div><div class="prod-item " onclick="openProduct(&#39;Doctor Start 330&#39;)">
-      <div class="prod-ref">Doctor Start 330</div>
-      <div class="prod-desc">Telwin Doctor Start 330 — 12/24V 45A 300A démarrage</div>
-      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span><span class="badge promo">PRIX</span></div>
-    </div><div class="prod-item " onclick="openProduct(&#39;Doctor Start 530&#39;)">
-      <div class="prod-ref">Doctor Start 530</div>
-      <div class="prod-desc">Telwin Doctor Start 530 — 12/24V 90A 400A démarrage</div>
-      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span><span class="badge promo">PRIX</span></div>
-    </div><div class="prod-item " onclick="openProduct(&#39;Doctor Start 630&#39;)">
-      <div class="prod-ref">Doctor Start 630</div>
-      <div class="prod-desc">Telwin Doctor Start 630 — 12/24V 90A 570A démarrage</div>
-      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span><span class="badge promo">PRIX</span></div>
-    </div><div class="prod-item " onclick="openProduct(&#39;Leader 150 Start&#39;)">
-      <div class="prod-ref">Leader 150 Start</div>
-      <div class="prod-desc">Telwin Leader 150 Start — 12V 20A 140A démarrage</div>
-      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span><span class="badge promo">PRIX</span></div>
-    </div><div class="prod-item " onclick="openProduct(&#39;Leader 220 Start&#39;)">
-      <div class="prod-ref">Leader 220 Start</div>
-      <div class="prod-desc">Telwin Leader 220 Start — 12/24V 30A 180A démarrage</div>
-      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span><span class="badge promo">PRIX</span></div>
-    </div><div class="prod-item " onclick="openProduct(&#39;Leader 400 Start&#39;)">
-      <div class="prod-ref">Leader 400 Start</div>
-      <div class="prod-desc">Telwin Leader 400 Start — 12/24V 45A 300A démarrage</div>
-      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span><span class="badge promo">PRIX</span></div>
-    </div><div class="prod-item " onclick="openProduct(&#39;Dynamic 320 Start&#39;)">
-      <div class="prod-ref">Dynamic 320 Start</div>
-      <div class="prod-desc">Telwin Dynamic 320 Start — 12/24V 45A 300A démarrage</div>
-      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span><span class="badge promo">PRIX</span></div>
-    </div><div class="prod-item " onclick="openProduct(&#39;Dynamic 420 Start&#39;)">
-      <div class="prod-ref">Dynamic 420 Start</div>
-      <div class="prod-desc">Telwin Dynamic 420 Start — 12/24V 90A 400A démarrage</div>
-      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span><span class="badge promo">PRIX</span></div>
-    </div><div class="prod-item " onclick="openProduct(&#39;Dynamic 520 Start&#39;)">
-      <div class="prod-ref">Dynamic 520 Start</div>
-      <div class="prod-desc">Telwin Dynamic 520 Start — 12/24V 90A 400A démarrage</div>
-      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span><span class="badge promo">PRIX</span></div>
-    </div><div class="prod-item " onclick="openProduct(&#39;Dynamic 620 Start&#39;)">
-      <div class="prod-ref">Dynamic 620 Start</div>
-      <div class="prod-desc">Telwin Dynamic 620 Start — 12/24V 90A 570A démarrage</div>
-      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span><span class="badge promo">PRIX</span></div>
-    </div><div class="prod-item " onclick="openProduct(&#39;Energy 1000 Start&#39;)">
-      <div class="prod-ref">Energy 1000 Start</div>
-      <div class="prod-desc">Telwin Energy 1000 Start — 12/24V 100A 1000A démarrage</div>
-      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span><span class="badge promo">PRIX</span></div>
-    </div><div class="prod-item " onclick="openProduct(&#39;Energy 1500 Start&#39;)">
-      <div class="prod-ref">Energy 1500 Start</div>
-      <div class="prod-desc">Telwin Energy 1500 Start — 12/24V 150A 1700A démarrage</div>
-      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span><span class="badge promo">PRIX</span></div>
-    </div><div class="prod-item " onclick="openProduct(&#39;Drive Mini&#39;)">
-      <div class="prod-ref">Drive Mini</div>
-      <div class="prod-desc">Telwin Drive Mini — 12V 1000A 6500 mAh</div>
-      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span><span class="badge promo">PRIX</span></div>
-    </div><div class="prod-item " onclick="openProduct(&#39;Drive 1250&#39;)">
-      <div class="prod-ref">Drive 1250</div>
-      <div class="prod-desc">Telwin Drive 1250 — 12V 1250A 9000 mAh</div>
-      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span><span class="badge promo">PRIX</span></div>
-    </div><div class="prod-item " onclick="openProduct(&#39;Drive 1500&#39;)">
-      <div class="prod-ref">Drive 1500</div>
-      <div class="prod-desc">Telwin Drive 1500 — 12V 1500A 12000 mAh</div>
-      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span><span class="badge promo">PRIX</span></div>
-    </div><div class="prod-item " onclick="openProduct(&#39;Drive 1750 XC&#39;)">
-      <div class="prod-ref">Drive 1750 XC</div>
-      <div class="prod-desc">Telwin Drive 1750 XC — 12V 1500A 12000 mAh Wireless</div>
-      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span><span class="badge promo">PRIX</span></div>
-    </div><div class="prod-item " onclick="openProduct(&#39;Drive 1800 Kompressor&#39;)">
-      <div class="prod-ref">Drive 1800 Kompressor</div>
-      <div class="prod-desc">Telwin Drive 1800 Kompressor — 12V 1800A 10000 mAh Compresseur</div>
-      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span><span class="badge promo">PRIX</span></div>
-    </div><div class="prod-item " onclick="openProduct(&#39;Drive Pro 2012&#39;)">
-      <div class="prod-ref">Drive Pro 2012</div>
-      <div class="prod-desc">Telwin Drive Pro 2012 — 12V 2500A 44.4 Wh NEW</div>
-      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span><span class="badge new">NEW</span><span class="badge promo">PRIX</span></div>
-    </div><div class="prod-item " onclick="openProduct(&#39;Drive Pro 4024&#39;)">
-      <div class="prod-ref">Drive Pro 4024</div>
-      <div class="prod-desc">Telwin Drive Pro 4024 — 12/24V 4500/2500A 88.8 Wh NEW</div>
-      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span><span class="badge new">NEW</span><span class="badge promo">PRIX</span></div>
-    </div><div class="prod-item " onclick="openProduct(&#39;Startzilla 4012 XT&#39;)">
-      <div class="prod-ref">Startzilla 4012 XT</div>
-      <div class="prod-desc">Telwin Startzilla 4012 XT — 12V 4000A 49.9 Wh</div>
-      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span><span class="badge promo">PRIX</span></div>
-    </div><div class="prod-item " onclick="openProduct(&#39;Startzilla 9012 XT&#39;)">
-      <div class="prod-ref">Startzilla 9012 XT</div>
-      <div class="prod-desc">Telwin Startzilla 9012 XT — 12V 9000A 99.9 Wh</div>
-      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span><span class="badge promo">PRIX</span></div>
-    </div><div class="prod-item " onclick="openProduct(&#39;Startzilla 9024 XT&#39;)">
-      <div class="prod-ref">Startzilla 9024 XT</div>
-      <div class="prod-desc">Telwin Startzilla 9024 XT — 12/24V 9000/4500A —</div>
-      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span><span class="badge promo">PRIX</span></div>
-    </div><div class="prod-item " onclick="openProduct(&#39;Startzilla 12024 XT&#39;)">
-      <div class="prod-ref">Startzilla 12024 XT</div>
-      <div class="prod-desc">Telwin Startzilla 12024 XT — 12/24V 12000/6000A 148 Wh</div>
-      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span><span class="badge promo">PRIX</span></div>
-    </div><div class="prod-item " onclick="openProduct(&#39;Pro Start 2824&#39;)">
-      <div class="prod-ref">Pro Start 2824</div>
-      <div class="prod-desc">Telwin Pro Start 2824 — 12/24V 800A 44/22 Ah</div>
-      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span><span class="badge promo">PRIX</span></div>
-    </div><div class="prod-item " onclick="openProduct(&#39;Power Up 650&#39;)">
-      <div class="prod-ref">Power Up 650</div>
-      <div class="prod-desc">Telwin Power Up 650 — Station énergie 640Wh</div>
-      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span><span class="badge promo">PRIX</span></div>
-    </div><div class="prod-item " onclick="openProduct(&#39;Power Up 1300&#39;)">
-      <div class="prod-ref">Power Up 1300</div>
-      <div class="prod-desc">Telwin Power Up 1300 — Station énergie 1280Wh</div>
-      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span><span class="badge promo">PRIX</span></div>
-    </div><div class="prod-item " onclick="openProduct(&#39;Converter 310 USB&#39;)">
-      <div class="prod-ref">Converter 310 USB</div>
-      <div class="prod-desc">Telwin Converter 310 USB — 12V→230V 300W</div>
-      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span><span class="badge promo">PRIX</span></div>
-    </div><div class="prod-item " onclick="openProduct(&#39;Converter 500&#39;)">
-      <div class="prod-ref">Converter 500</div>
-      <div class="prod-desc">Telwin Converter 500 — 12V→230V 500W</div>
-      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span><span class="badge promo">PRIX</span></div>
-    </div><div class="prod-item " onclick="openProduct(&#39;Converter 1000&#39;)">
-      <div class="prod-ref">Converter 1000</div>
-      <div class="prod-desc">Telwin Converter 1000 — 12V→230V 1000W</div>
-      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span><span class="badge promo">PRIX</span></div>
-    </div><div class="prod-item " onclick="openProduct(&#39;Câble booster 250A&#39;)">
-      <div class="prod-ref">Câble booster 250A</div>
-      <div class="prod-desc">Telwin Câble booster 250A — Câbles démarrage 250A</div>
-      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span><span class="badge promo">PRIX</span></div>
-    </div><div class="prod-item " onclick="openProduct(&#39;Câble booster 350A&#39;)">
-      <div class="prod-ref">Câble booster 350A</div>
-      <div class="prod-desc">Telwin Câble booster 350A — Câbles démarrage 350A</div>
-      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span><span class="badge promo">PRIX</span></div>
-    </div><div class="prod-item " onclick="openProduct(&#39;Câble booster 350A Pro&#39;)">
-      <div class="prod-ref">Câble booster 350A Pro</div>
-      <div class="prod-desc">Telwin Câble booster 350A Pro — Câbles démarrage 350A Pro</div>
-      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span><span class="badge promo">PRIX</span></div>
-    </div><div class="prod-item " onclick="openProduct(&#39;Câble booster 550A Pro&#39;)">
-      <div class="prod-ref">Câble booster 550A Pro</div>
-      <div class="prod-desc">Telwin Câble booster 550A Pro — Câbles démarrage 550A Pro</div>
-      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span><span class="badge promo">PRIX</span></div>
-    </div><div class="prod-item " onclick="openProduct(&#39;Câble booster 800A Pro&#39;)">
-      <div class="prod-ref">Câble booster 800A Pro</div>
-      <div class="prod-desc">Telwin Câble booster 800A Pro — Câbles démarrage 800A Pro</div>
-      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span><span class="badge promo">PRIX</span></div>
-    </div><div class="prod-item " onclick="openProduct(&#39;Battery Link 2.0&#39;)">
-      <div class="prod-ref">Battery Link 2.0</div>
-      <div class="prod-desc">Telwin Battery Link 2.0 — Répartiteur de charge</div>
-      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span><span class="badge promo">PRIX</span></div>
-    </div><div class="prod-item " onclick="openProduct(&#39;Arc Protector&#39;)">
-      <div class="prod-ref">Arc Protector</div>
-      <div class="prod-desc">Telwin Arc Protector — Protecteur anti-arc</div>
-      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span><span class="badge promo">PRIX</span></div>
-    </div><div class="prod-item " onclick="openProduct(&#39;DTP 900&#39;)">
-      <div class="prod-ref">DTP 900</div>
-      <div class="prod-desc">Telwin DTP 900 — Testeur batterie numérique 900A</div>
-      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span><span class="badge promo">PRIX</span></div>
-    </div><div class="prod-item " onclick="openProduct(&#39;DTP 790&#39;)">
-      <div class="prod-ref">DTP 790</div>
-      <div class="prod-desc">Telwin DTP 790 — Testeur batterie numérique 790A</div>
-      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span><span class="badge promo">PRIX</span></div>
-    </div><div class="prod-item " onclick="openProduct(&#39;STS 700&#39;)">
-      <div class="prod-ref">STS 700</div>
-      <div class="prod-desc">Telwin STS 700 — Testeur batterie conductance 700A</div>
-      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span><span class="badge promo">PRIX</span></div>
-    </div><div class="prod-item " onclick="openProduct(&#39;STS 600&#39;)">
-      <div class="prod-ref">STS 600</div>
-      <div class="prod-desc">Telwin STS 600 — Testeur batterie conductance 600A</div>
-      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span><span class="badge promo">PRIX</span></div>
-    </div><div class="prod-item " onclick="openProduct(&#39;DT400&#39;)">
-      <div class="prod-ref">DT400</div>
-      <div class="prod-desc">Telwin DT400 — Testeur digital batterie</div>
-      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span><span class="badge promo">PRIX</span></div>
-    </div><div class="prod-item " onclick="openProduct(&#39;T200 Battery Tester&#39;)">
-      <div class="prod-ref">T200 Battery Tester</div>
-      <div class="prod-desc">Telwin T200 Battery Tester — Testeur batterie 200A</div>
-      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span><span class="badge promo">PRIX</span></div>
-    </div><div class="prod-item " onclick="openProduct(&#39;BTS350 LED&#39;)">
-      <div class="prod-ref">BTS350 LED</div>
-      <div class="prod-desc">Telwin BTS350 LED — Testeur batterie LED</div>
-      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span><span class="badge promo">PRIX</span></div>
+    <div id="sidebar-stats"><span><span class="stat-count">53</span> résultats</span><span style="opacity:.4">1169 total</span></div>
+    <div id="product-list"><div class="prod-item " onclick="openProduct(&#39;A-ES-TS-HG-SFT240&#39;)" tabindex="-1">
+      <div class="prod-ref">A-ES-TS-HG-SFT240</div>
+      <div class="prod-desc">BLUETTI A-ES-TS-HG-SFT240 — INTERRUPEUR INVERSEUR</div>
+      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span></div>
+    </div><div class="prod-item " onclick="openProduct(&#39;A-MT-AR-EU-SGP&#39;)" tabindex="-1">
+      <div class="prod-ref">A-MT-AR-EU-SGP</div>
+      <div class="prod-desc">BLUETTI A-MT-AR-EU-SGP — KIT MONTAGE</div>
+      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span></div>
+    </div><div class="prod-item " onclick="openProduct(&#39;AC500&#39;)" tabindex="-1">
+      <div class="prod-ref">AC500</div>
+      <div class="prod-desc">BLUETTI AC500 — 5000W</div>
+      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span></div>
+    </div><div class="prod-item " onclick="openProduct(&#39;AC500 to B300K Connection Cable&#39;)" tabindex="-1">
+      <div class="prod-ref">AC500 to B300K Connection Cable</div>
+      <div class="prod-desc">BLUETTI AC500 to B300K Connection Cable — CABLE</div>
+      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span></div>
+    </div><div class="prod-item " onclick="openProduct(&#39;Apex300&#39;)" tabindex="-1">
+      <div class="prod-ref">Apex300</div>
+      <div class="prod-desc">BLUETTI Apex300 — 3800W 2760Wh</div>
+      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span></div>
+    </div><div class="prod-item " onclick="openProduct(&#39;Apex300 Trolley&#39;)" tabindex="-1">
+      <div class="prod-ref">Apex300 Trolley</div>
+      <div class="prod-desc">BLUETTI Apex300 Trolley — CHARIOT</div>
+      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span></div>
+    </div><div class="prod-item " onclick="openProduct(&#39;B1210&#39;)" tabindex="-1">
+      <div class="prod-ref">B1210</div>
+      <div class="prod-desc">BLUETTI B1210 — 1280Wh</div>
+      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span></div>
+    </div><div class="prod-item " onclick="openProduct(&#39;B1232&#39;)" tabindex="-1">
+      <div class="prod-ref">B1232</div>
+      <div class="prod-desc">BLUETTI B1232 — 4019.2Wh</div>
+      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span></div>
+    </div><div class="prod-item " onclick="openProduct(&#39;B4810&#39;)" tabindex="-1">
+      <div class="prod-ref">B4810</div>
+      <div class="prod-desc">BLUETTI B4810 — 5120Wh</div>
+      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span></div>
+    </div><div class="prod-item " onclick="openProduct(&#39;B500&#39;)" tabindex="-1">
+      <div class="prod-ref">B500</div>
+      <div class="prod-desc">BLUETTI B500 — MONOPHASE</div>
+      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span></div>
+    </div><div class="prod-item " onclick="openProduct(&#39;B500 Base&#39;)" tabindex="-1">
+      <div class="prod-ref">B500 Base</div>
+      <div class="prod-desc">BLUETTI B500 Base — BASE</div>
+      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span></div>
+    </div><div class="prod-item " onclick="openProduct(&#39;B500K&#39;)" tabindex="-1">
+      <div class="prod-ref">B500K</div>
+      <div class="prod-desc">BLUETTI B500K — 5120Wh</div>
+      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span></div>
+    </div><div class="prod-item " onclick="openProduct(&#39;B700&#39;)" tabindex="-1">
+      <div class="prod-ref">B700</div>
+      <div class="prod-desc">BLUETTI B700 — 7372Wh TRIPHASE</div>
+      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span></div>
+    </div><div class="prod-item " onclick="openProduct(&#39;Bluecell 200&#39;)" tabindex="-1">
+      <div class="prod-ref">Bluecell 200</div>
+      <div class="prod-desc">BLUETTI Bluecell 200</div>
+      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span></div>
+    </div><div class="prod-item " onclick="openProduct(&#39;BlueCell 300 (B300K)&#39;)" tabindex="-1">
+      <div class="prod-ref">BlueCell 300 (B300K)</div>
+      <div class="prod-desc">BLUETTI BlueCell 300 (B300K) — 2764Wh</div>
+      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span></div>
+    </div><div class="prod-item " onclick="openProduct(&#39;Charger 1+DC Input Cable&#39;)" tabindex="-1">
+      <div class="prod-ref">Charger 1+DC Input Cable</div>
+      <div class="prod-desc">BLUETTI Charger 1+DC Input Cable — CHARGEUR VOITURE</div>
+      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span></div>
+    </div><div class="prod-item " onclick="openProduct(&#39;Charger2 Kit (with 5m DC input Cable)&#39;)" tabindex="-1">
+      <div class="prod-ref">Charger2 Kit (with 5m DC input Cable)</div>
+      <div class="prod-desc">BLUETTI Charger2 Kit (with 5m DC input Cable) — CHARGER 2</div>
+      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span></div>
+    </div><div class="prod-item " onclick="openProduct(&#39;Elite 320&#39;)" tabindex="-1">
+      <div class="prod-ref">Elite 320</div>
+      <div class="prod-desc">BLUETTI Elite 320 — 1800W 3200Wh</div>
+      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span></div>
+    </div><div class="prod-item " onclick="openProduct(&#39;EP2000&#39;)" tabindex="-1">
+      <div class="prod-ref">EP2000</div>
+      <div class="prod-desc">BLUETTI EP2000 — 20000W TRIPHASE</div>
+      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span></div>
+    </div><div class="prod-item " onclick="openProduct(&#39;EP2000 Base &amp; Cable Kit (1 Inverter to 3 Battery Packs)&#39;)" tabindex="-1">
+      <div class="prod-ref">EP2000 Base &amp; Cable Kit (1 Inverter to 3 Battery Packs)</div>
+      <div class="prod-desc">BLUETTI EP2000 Base &amp; Cable Kit (1 Inverter to 3 Battery Packs) — TRIPHASE</div>
+      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span></div>
+    </div><div class="prod-item " onclick="openProduct(&#39;EP2000 Base &amp; Cable Kit (1 Inverter to 5 Battery Packs)&#39;)" tabindex="-1">
+      <div class="prod-ref">EP2000 Base &amp; Cable Kit (1 Inverter to 5 Battery Packs)</div>
+      <div class="prod-desc">BLUETTI EP2000 Base &amp; Cable Kit (1 Inverter to 5 Battery Packs) — CABLE</div>
+      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span></div>
+    </div><div class="prod-item " onclick="openProduct(&#39;EP2000 Base &amp; Cable Kit (1 Inverter to 7 Battery Packs)&#39;)" tabindex="-1">
+      <div class="prod-ref">EP2000 Base &amp; Cable Kit (1 Inverter to 7 Battery Packs)</div>
+      <div class="prod-desc">BLUETTI EP2000 Base &amp; Cable Kit (1 Inverter to 7 Battery Packs) — CABLE</div>
+      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span></div>
+    </div><div class="prod-item " onclick="openProduct(&#39;EP2000 EMS&#39;)" tabindex="-1">
+      <div class="prod-ref">EP2000 EMS</div>
+      <div class="prod-desc">BLUETTI EP2000 EMS — EMS</div>
+      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span></div>
+    </div><div class="prod-item " onclick="openProduct(&#39;EP2000 Transfer Switch&#39;)" tabindex="-1">
+      <div class="prod-ref">EP2000 Transfer Switch</div>
+      <div class="prod-desc">BLUETTI EP2000 Transfer Switch — COMMUTATEUR</div>
+      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span></div>
+    </div><div class="prod-item " onclick="openProduct(&#39;EP2000+2/B700_Kit&#39;)" tabindex="-1">
+      <div class="prod-ref">EP2000+2/B700_Kit</div>
+      <div class="prod-desc">BLUETTI EP2000+2/B700_Kit — 14744Wh</div>
+      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span></div>
+    </div><div class="prod-item " onclick="openProduct(&#39;EP2000+3/B700_Kit&#39;)" tabindex="-1">
+      <div class="prod-ref">EP2000+3/B700_Kit</div>
+      <div class="prod-desc">BLUETTI EP2000+3/B700_Kit — 22116Wh</div>
+      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span></div>
+    </div><div class="prod-item " onclick="openProduct(&#39;EP2000+4/B700_Kit&#39;)" tabindex="-1">
+      <div class="prod-ref">EP2000+4/B700_Kit</div>
+      <div class="prod-desc">BLUETTI EP2000+4/B700_Kit — 29488Wh</div>
+      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span></div>
+    </div><div class="prod-item " onclick="openProduct(&#39;EP2000+5/B700_Kit&#39;)" tabindex="-1">
+      <div class="prod-ref">EP2000+5/B700_Kit</div>
+      <div class="prod-desc">BLUETTI EP2000+5/B700_Kit — 36860Wh</div>
+      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span></div>
+    </div><div class="prod-item " onclick="openProduct(&#39;EP2000+6/B700_Kit&#39;)" tabindex="-1">
+      <div class="prod-ref">EP2000+6/B700_Kit</div>
+      <div class="prod-desc">BLUETTI EP2000+6/B700_Kit — 44232Wh</div>
+      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span></div>
+    </div><div class="prod-item " onclick="openProduct(&#39;EP2000+7/B700_Kit&#39;)" tabindex="-1">
+      <div class="prod-ref">EP2000+7/B700_Kit</div>
+      <div class="prod-desc">BLUETTI EP2000+7/B700_Kit — 51604Wh</div>
+      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span></div>
+    </div><div class="prod-item " onclick="openProduct(&#39;EP760&#39;)" tabindex="-1">
+      <div class="prod-ref">EP760</div>
+      <div class="prod-desc">BLUETTI EP760 — MONOPHASE</div>
+      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span></div>
+    </div><div class="prod-item " onclick="openProduct(&#39;EP760+2/B500_Kit&#39;)" tabindex="-1">
+      <div class="prod-ref">EP760+2/B500_Kit</div>
+      <div class="prod-desc">BLUETTI EP760+2/B500_Kit — 9920Wh</div>
+      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span></div>
+    </div><div class="prod-item " onclick="openProduct(&#39;EP760+3/B500_Kit&#39;)" tabindex="-1">
+      <div class="prod-ref">EP760+3/B500_Kit</div>
+      <div class="prod-desc">BLUETTI EP760+3/B500_Kit — 14880Wh</div>
+      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span></div>
+    </div><div class="prod-item " onclick="openProduct(&#39;EP760+4/B500_Kit&#39;)" tabindex="-1">
+      <div class="prod-ref">EP760+4/B500_Kit</div>
+      <div class="prod-desc">BLUETTI EP760+4/B500_Kit — 19840Wh</div>
+      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span></div>
+    </div><div class="prod-item " onclick="openProduct(&#39;epad&#39;)" tabindex="-1">
+      <div class="prod-ref">epad</div>
+      <div class="prod-desc">BLUETTI epad — TABLETTE</div>
+      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span></div>
+    </div><div class="prod-item " onclick="openProduct(&#39;epanel&#39;)" tabindex="-1">
+      <div class="prod-ref">epanel</div>
+      <div class="prod-desc">BLUETTI epanel — TABLEAU</div>
+      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span></div>
+    </div><div class="prod-item " onclick="openProduct(&#39;Fridge Power&#39;)" tabindex="-1">
+      <div class="prod-ref">Fridge Power</div>
+      <div class="prod-desc">BLUETTI Fridge Power — MODULE ALIMENTATION</div>
+      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span></div>
+    </div><div class="prod-item " onclick="openProduct(&#39;HUB A1&#39;)" tabindex="-1">
+      <div class="prod-ref">HUB A1</div>
+      <div class="prod-desc">BLUETTI HUB A1 — MODULE DISTRIBUTION</div>
+      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span></div>
+    </div><div class="prod-item " onclick="openProduct(&#39;HUB D1&#39;)" tabindex="-1">
+      <div class="prod-ref">HUB D1</div>
+      <div class="prod-desc">BLUETTI HUB D1 — MODULE DISTRIBUTION</div>
+      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span></div>
+    </div><div class="prod-item " onclick="openProduct(&#39;HV800&#39;)" tabindex="-1">
+      <div class="prod-ref">HV800</div>
+      <div class="prod-desc">BLUETTI HV800 — MODULE TRIPHASE</div>
+      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span></div>
+    </div><div class="prod-item " onclick="openProduct(&#39;Premium 100 V2&#39;)" tabindex="-1">
+      <div class="prod-ref">Premium 100 V2</div>
+      <div class="prod-desc">BLUETTI Premium 100 V2 — 2000W 1024Wh</div>
+      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span></div>
+    </div><div class="prod-item " onclick="openProduct(&#39;Premium 150 (AC180P)&#39;)" tabindex="-1">
+      <div class="prod-ref">Premium 150 (AC180P)</div>
+      <div class="prod-desc">BLUETTI Premium 150 (AC180P) — 1800W 1440Wh</div>
+      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span></div>
+    </div><div class="prod-item " onclick="openProduct(&#39;Premium 200 (AC200PL)&#39;)" tabindex="-1">
+      <div class="prod-ref">Premium 200 (AC200PL)</div>
+      <div class="prod-desc">BLUETTI Premium 200 (AC200PL) — 2400W 2304Wh</div>
+      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span></div>
+    </div><div class="prod-item " onclick="openProduct(&#39;Premium 200 V2&#39;)" tabindex="-1">
+      <div class="prod-ref">Premium 200 V2</div>
+      <div class="prod-desc">BLUETTI Premium 200 V2 — 2700W 2073.6Wh</div>
+      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span></div>
+    </div><div class="prod-item active" onclick="openProduct(&#39;Premium 30 V2&#39;)" tabindex="-1">
+      <div class="prod-ref">Premium 30 V2</div>
+      <div class="prod-desc">BLUETTI Premium 30 V2 — 600W 320Wh</div>
+      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span></div>
+    </div><div class="prod-item " onclick="openProduct(&#39;Premium 50 (AC50P)&#39;)" tabindex="-1">
+      <div class="prod-ref">Premium 50 (AC50P)</div>
+      <div class="prod-desc">BLUETTI Premium 50 (AC50P) — 700W 504Wh</div>
+      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span></div>
+    </div><div class="prod-item " onclick="openProduct(&#39;Premium 80 (AC70P)&#39;)" tabindex="-1">
+      <div class="prod-ref">Premium 80 (AC70P)</div>
+      <div class="prod-desc">BLUETTI Premium 80 (AC70P) — 1000W 864Wh</div>
+      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span></div>
+    </div><div class="prod-item " onclick="openProduct(&#39;RV5&#39;)" tabindex="-1">
+      <div class="prod-ref">RV5</div>
+      <div class="prod-desc">BLUETTI RV5 — 5000W</div>
+      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span></div>
+    </div><div class="prod-item " onclick="openProduct(&#39;Soler X 4K&#39;)" tabindex="-1">
+      <div class="prod-ref">Soler X 4K</div>
+      <div class="prod-desc">BLUETTI Soler X 4K — OPTIMISEUR</div>
+      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span></div>
+    </div><div class="prod-item " onclick="openProduct(&#39;Sora 130&#39;)" tabindex="-1">
+      <div class="prod-ref">Sora 130</div>
+      <div class="prod-desc">BLUETTI Sora 130 — MONOCRISTALLIN</div>
+      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span></div>
+    </div><div class="prod-item " onclick="openProduct(&#39;Sora 220&#39;)" tabindex="-1">
+      <div class="prod-ref">Sora 220</div>
+      <div class="prod-desc">BLUETTI Sora 220 — MONOCRISTALLIN</div>
+      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span></div>
+    </div><div class="prod-item " onclick="openProduct(&#39;Sora 500&#39;)" tabindex="-1">
+      <div class="prod-ref">Sora 500</div>
+      <div class="prod-desc">BLUETTI Sora 500 — TOP CON</div>
+      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span></div>
+    </div><div class="prod-item " onclick="openProduct(&#39;Sora 60&#39;)" tabindex="-1">
+      <div class="prod-ref">Sora 60</div>
+      <div class="prod-desc">BLUETTI Sora 60 — MONOCRISTALLIN</div>
+      <div class="prod-meta"><span class="badge cd">Charge &amp; Démarrage</span></div>
     </div></div>
   </div>
 
@@ -549,7 +643,7 @@ textarea{resize:vertical;min-height:64px}
 
     <div id="editor" style="display: block;">
       <div class="editor-top">
-        <h2 id="editor-title">Édition — T-Charge 12</h2>
+        <h2 id="editor-title">Édition — Premium 30 V2</h2>
         <div class="editor-actions">
           <button class="tb-btn danger" id="delete-btn" onclick="deleteProduct()">🗑️ Supprimer</button>
           <button class="tb-btn primary" onclick="saveProduct()">💾 Enregistrer</button>
@@ -588,15 +682,24 @@ textarea{resize:vertical;min-height:64px}
           </div>
           <div class="field">
             <label>Sous-famille</label>
-            <input type="text" id="f-sf-prod" placeholder="torches, demarrage-vl…">
+            <div class="sf-select-wrap">
+              <select id="f-sf-prod"><option value="">— aucune —</option><option value="chargeurs">Chargeurs</option><option value="charge-start">Charge &amp; Start</option><option value="demarreurs-lithium">Démarreurs Lithium</option><option value="accessoires-energie" selected="">Énergie Portable</option><option value="accessoires-cables">Câbles &amp; Accessoires</option><option value="testeurs-batteries">Testeurs Batteries</option><option value="__custom__">✏️ Valeur personnalisée…</option></select>
+              <button class="sf-manage-btn" onclick="openSFManager()" title="Gérer les familles et sous-familles">⚙️ Gérer</button>
+            </div>
           </div>
           <div class="field">
             <label>Type / Technologie</label>
-            <input type="text" id="f-t" placeholder="AGM, Torche, Chargeur…">
+            <div class="tg-select-wrap">
+              <select id="f-t" onchange="onTypeSelectChange()"><option value="">— aucun —</option><option value="Chargeur">Chargeur</option><option value="Chargeur-Démarreur">Chargeur-Démarreur</option><option value="Booster Lithium">Booster Lithium</option><option value="Station Energie">Station Energie</option><option value="Power Station" selected="">Power Station</option><option value="Solaire">Solaire</option><option value="Batterie LFP">Batterie LFP</option><option value="Testeur">Testeur</option><option value="Compresseur">Compresseur</option><option value="Convertisseur">Convertisseur</option><option value="Câbles">Câbles</option><option value="Accessoire">Accessoire</option><option value="__custom__">✏️ Personnalisé…</option></select>
+              <input type="text" id="f-t-custom" class="tg-custom-input" placeholder="Saisir un type…" style="display:none">
+            </div>
           </div>
           <div class="field">
             <label>Groupe / Gamme</label>
-            <input type="text" id="f-g" placeholder="Automotive AGM, Torches…">
+            <div class="tg-select-wrap">
+              <select id="f-g" onchange="onGroupeSelectChange()"><option value="">— aucun —</option><option value="Chargeurs de batterie">Chargeurs de batterie</option><option value="Démarreurs Lithium Portables">Démarreurs Lithium Portables</option><option value="Stations Énergie">Stations Énergie</option><option value="Panneaux solaires">Panneaux solaires</option><option value="Testeurs de batteries">Testeurs de batteries</option><option value="Câbles de démarrage">Câbles de démarrage</option><option value="Accessoires">Accessoires</option><option value="Station énergie portable">Station énergie portable</option><option value="__custom__">✏️ Personnalisé…</option></select>
+              <input type="text" id="f-g-custom" class="tg-custom-input" placeholder="Saisir un groupe…" style="display:none">
+            </div>
           </div>
           <div class="field">
             <label>ID (auto)</label>
@@ -606,6 +709,7 @@ textarea{resize:vertical;min-height:64px}
         <div class="check-row" style="margin-top:14px">
           <label class="check-item"><input type="checkbox" id="f-n"><span>🆕 Nouveauté</span></label>
           <label class="check-item"><input type="checkbox" id="f-p"><span>🏷️ Affiché en prix</span></label>
+          <label class="check-item"><input type="checkbox" id="f-promo"><span>🔥 Promo</span></label>
           <label class="check-item"><input type="checkbox" id="f-e"><span>⚠️ Épuisé</span></label>
         </div>
       </div>
@@ -623,26 +727,14 @@ textarea{resize:vertical;min-height:64px}
             <th></th>
           </tr></thead>
           <tbody id="specs-tbody"><tr>
-    <td><input type="text" class="spec-key-input fld" value="tension" placeholder="clé"></td>
-    <td><input type="text" class="spec-val-input fld" value="6/12V" placeholder="valeur"></td>
+    <td><input type="text" class="spec-key-input fld" value="prix_ht" placeholder="clé"></td>
+    <td><input type="text" class="spec-val-input fld" value="259 €" placeholder="valeur"></td>
+    <td><button class="spec-del" onclick="this.closest(&#39;tr&#39;).remove()" title="Supprimer">×</button></td></tr><tr>
+    <td><input type="text" class="spec-key-input fld" value="cap_wh" placeholder="clé"></td>
+    <td><input type="text" class="spec-val-input fld" value="320 Wh" placeholder="valeur"></td>
     <td><button class="spec-del" onclick="this.closest(&#39;tr&#39;).remove()" title="Supprimer">×</button></td></tr><tr>
     <td><input type="text" class="spec-key-input fld" value="puissance" placeholder="clé"></td>
-    <td><input type="text" class="spec-val-input fld" value="59W" placeholder="valeur"></td>
-    <td><button class="spec-del" onclick="this.closest(&#39;tr&#39;).remove()" title="Supprimer">×</button></td></tr><tr>
-    <td><input type="text" class="spec-key-input fld" value="courant_max" placeholder="clé"></td>
-    <td><input type="text" class="spec-val-input fld" value="4A" placeholder="valeur"></td>
-    <td><button class="spec-del" onclick="this.closest(&#39;tr&#39;).remove()" title="Supprimer">×</button></td></tr><tr>
-    <td><input type="text" class="spec-key-input fld" value="capacite_max" placeholder="clé"></td>
-    <td><input type="text" class="spec-val-input fld" value="70Ah max" placeholder="valeur"></td>
-    <td><button class="spec-del" onclick="this.closest(&#39;tr&#39;).remove()" title="Supprimer">×</button></td></tr><tr>
-    <td><input type="text" class="spec-key-input fld" value="ref" placeholder="clé"></td>
-    <td><input type="text" class="spec-val-input fld" value="807849" placeholder="valeur"></td>
-    <td><button class="spec-del" onclick="this.closest(&#39;tr&#39;).remove()" title="Supprimer">×</button></td></tr><tr>
-    <td><input type="text" class="spec-key-input fld" value="prix_ht" placeholder="clé"></td>
-    <td><input type="text" class="spec-val-input fld" value="96 € HT" placeholder="valeur"></td>
-    <td><button class="spec-del" onclick="this.closest(&#39;tr&#39;).remove()" title="Supprimer">×</button></td></tr><tr>
-    <td><input type="text" class="spec-key-input fld" value="note" placeholder="clé"></td>
-    <td><input type="text" class="spec-val-input fld" value="IP65" placeholder="valeur"></td>
+    <td><input type="text" class="spec-val-input fld" value="600 W" placeholder="valeur"></td>
     <td><button class="spec-del" onclick="this.closest(&#39;tr&#39;).remove()" title="Supprimer">×</button></td></tr></tbody>
         </table>
         <button id="add-spec-btn" onclick="addSpecRow(&#39;&#39;,&#39;&#39;)">+ Ajouter un champ</button>
@@ -652,7 +744,7 @@ textarea{resize:vertical;min-height:64px}
       <div class="section">
         <h3>Photo produit</h3>
         <div class="photo-area">
-          <div class="photo-preview" id="photo-preview-box"><img src="blob:null/09e08d0f-968f-4a5e-9536-3edaeed466bd" onerror="this.parentElement.innerHTML=&#39;&lt;span class=\&#39;no-photo\&#39;&gt;📷&lt;/span&gt;&#39;"></div>
+          <div class="photo-preview" id="photo-preview-box"><img src="blob:null/7ca174e1-f0cd-43d1-9c66-e44bf5104da2" onerror="this.parentElement.innerHTML=&#39;&lt;span class=\&#39;no-photo\&#39;&gt;📷&lt;/span&gt;&#39;"></div>
           <div class="photo-controls">
             <div class="field">
               <label>Chemin photo (relatif)</label>
@@ -661,11 +753,32 @@ textarea{resize:vertical;min-height:64px}
             <label class="photo-upload-btn" for="photo-file-input">📁 Charger une photo pour prévisualiser</label>
             <input type="file" id="photo-file-input" accept="image/*" onchange="handlePhotoUpload(this)">
             <p class="photo-path-note">
-              ℹ️ Nommez le fichier <strong id="photo-suggested-name">T-Charge 12.png</strong> et copiez-le dans le dossier <code>Photo/</code> du catalogue.<br>
+              ℹ️ Nommez le fichier <strong id="photo-suggested-name">Premium 30 V2.png</strong> et copiez-le dans le dossier <code>Photo/</code> du catalogue.<br>
               La photo sera automatiquement reconnue au prochain chargement.
             </p>
           </div>
         </div>
+      </div>
+      <!-- SECTION MÉTIERS -->
+      <div class="section" id="section-metiers">
+        <h3>Métiers rattachés</h3>
+        <p style="font-size:11px;color:var(--text3);margin-bottom:10px">Sélectionnez les métiers auxquels ce produit appartient (multi-sélection)</p>
+        <div class="metiers-check-grid" id="metiers-checkboxes"><label class="metier-cb-label" id="mcbl-auto">
+      <input type="checkbox" value="auto" onchange="onMetierCbChange(this,&#39;auto&#39;)">
+      <span>🔧 Garagiste / Auto</span>
+    </label><label class="metier-cb-label" id="mcbl-pl">
+      <input type="checkbox" value="pl" onchange="onMetierCbChange(this,&#39;pl&#39;)">
+      <span>🚛 Poids Lourds</span>
+    </label><label class="metier-cb-label" id="mcbl-marine">
+      <input type="checkbox" value="marine" onchange="onMetierCbChange(this,&#39;marine&#39;)">
+      <span>⚓ Marine / Nautisme</span>
+    </label><label class="metier-cb-label" id="mcbl-industrie">
+      <input type="checkbox" value="industrie" onchange="onMetierCbChange(this,&#39;industrie&#39;)">
+      <span>🏭 Industrie / Énergie</span>
+    </label><label class="metier-cb-label" id="mcbl-bricolage">
+      <input type="checkbox" value="bricolage" onchange="onMetierCbChange(this,&#39;bricolage&#39;)">
+      <span>🔨 Bricolage</span>
+    </label></div>
       </div>
     </div><!-- /editor -->
   </div><!-- /editor-wrap -->
@@ -711,7 +824,7 @@ textarea{resize:vertical;min-height:64px}
       <div class="metier-icon">🔨</div>
       <div class="metier-info">
         <div class="metier-label">Bricolage</div>
-        <div class="metier-count">192 produits</div>
+        <div class="metier-count">432 produits</div>
       </div>
       <div class="metier-color-dot" style="background:#F57F17"></div>
     </div></div>
@@ -886,7 +999,69 @@ textarea{resize:vertical;min-height:64px}
   </div>
 </div>
 
-<div id="toast" class="">📷 Photo chargée — copiez-la dans Photo/ sous le nom "T-Charge 12.png"</div>
+<div id="toast" class="">📷 Photo chargée — copiez-la dans Photo/ sous le nom "Premium 30 V2.png"</div>
+
+<!-- ════ MODAL: SF MANAGER ════ -->
+<div class="modal-overlay" id="modal-sf" style="display:none" onclick="if(event.target===this)closeSFManager()">
+  <div class="modal-box md">
+    <div class="modal-hdr">
+      <h3>⚙️ Gestion familles &amp; sous-familles</h3>
+      <button class="modal-close" onclick="closeSFManager()">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:12px;color:var(--text2);margin-bottom:16px">Gérez les sous-familles disponibles pour chaque famille. Ces options sont sauvegardées dans votre navigateur.</p>
+      <div class="sf-manager-grid" id="sf-manager-grid"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="tb-btn secondary" onclick="resetSFConfig()">↺ Restaurer les valeurs par défaut</button>
+      <button class="tb-btn primary" onclick="saveSFConfig()">💾 Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ MODAL: EXCEL IMPORT ════ -->
+<div class="modal-overlay" id="modal-xlsx" style="display:none" onclick="if(event.target===this)closeXlsxImport()">
+  <div class="modal-box lg">
+    <div class="modal-hdr">
+      <h3>📊 Import Excel — Création de produits par lot</h3>
+      <button class="modal-close" onclick="closeXlsxImport()">✕</button>
+    </div>
+    <div class="modal-body" id="xlsx-modal-body">
+      <!-- Step 1: upload -->
+      <div id="xlsx-step-upload">
+        <div class="xlsx-drop-zone" id="xlsx-drop-zone" onclick="document.getElementById(&#39;xlsx-file-input&#39;).click()" ondragover="event.preventDefault();this.classList.add(&#39;over&#39;)" ondragleave="this.classList.remove(&#39;over&#39;)" ondrop="event.preventDefault();this.classList.remove(&#39;over&#39;);handleXlsxDrop(event)">
+          <div class="drop-icon">📊</div>
+          <p>Cliquez ou déposez votre fichier Excel ici</p>
+          <small>Formats supportés : .xlsx, .xls, .csv — La première ligne doit contenir les en-têtes</small>
+        </div>
+        <input type="file" id="xlsx-file-input" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleXlsxFile(this)">
+        <div style="margin-top:16px;padding:12px 14px;background:var(--bg);border-radius:8px;border:1px solid var(--border)">
+          <p style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px">Colonnes reconnues automatiquement :</p>
+          <p style="font-size:11px;color:var(--text3);line-height:1.8">
+            <strong>ref / référence</strong> — <strong>sap</strong> — <strong>description / libellé</strong> — <strong>marque</strong> —
+            <strong>famille</strong> — <strong>sous-famille / sf</strong> — <strong>type / technologie</strong> — <strong>groupe / gamme</strong> —
+            <strong>nouveauté</strong> — <strong>promo / prix</strong> — <strong>épuisé</strong><br>
+            + toute colonne spécification (ah, cca, bac, dim, tension, lm, ip…)
+          </p>
+        </div>
+      </div>
+      <!-- Step 2: mapping + preview -->
+      <div id="xlsx-step-preview" style="display:none">
+        <div class="import-stats" id="xlsx-stats"></div>
+        <div id="xlsx-col-map-wrap">
+          <p style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px">Correspondance colonnes → champs produit :</p>
+          <div class="col-map-grid" id="xlsx-col-map"></div>
+        </div>
+        <div class="import-preview-wrap" id="xlsx-preview-wrap"></div>
+      </div>
+    </div>
+    <div class="modal-foot" id="xlsx-modal-foot" style="display:none">
+      <span id="xlsx-foot-info" style="flex:1;font-size:12px;color:var(--text2)"></span>
+      <button class="tb-btn secondary" onclick="xlsxBack()">← Retour</button>
+      <button class="tb-btn primary" id="xlsx-confirm-btn" onclick="confirmXlsxImport()">✅ Importer</button>
+    </div>
+  </div>
+</div>
 
 <script>
 // PDF.js worker
@@ -989,7 +1164,9 @@ function loadCatalogue(input) {
       document.getElementById('save-btn').disabled = false;
       document.getElementById('new-prod-btn').disabled = false;
       document.getElementById('export-metiers-btn').disabled = false;
-      updateMarqueFilter();
+      document.getElementById('xlsx-import-btn').disabled = false;
+      updateSubFilters();
+      updateFamCounts();
       renderList();
       refreshMetierPreviews();
       setStatus('ok', `✅ ${allProducts.length} produits — ${Object.keys(photoMap).length} photos`);
@@ -1052,49 +1229,194 @@ function extractBracketContent(str, marker, openChar) {
 }
 
 // ══════════════════════════════════════════════════════════════════
+// SIDEBAR FILTER STATE
+// ══════════════════════════════════════════════════════════════════
+let filterFam = '';
+let filterStatus = { new: false, promo: false, epuise: false };
+let searchSpecScope = false;
+let searchDebounceTimer = null;
+let kbIndex = -1; // keyboard focus index in list
+
+function onSearchInput() {
+  clearTimeout(searchDebounceTimer);
+  const val = document.getElementById('search').value;
+  document.getElementById('search-clear').classList.toggle('visible', val.length > 0);
+  searchDebounceTimer = setTimeout(renderList, 180);
+}
+
+function onSearchKey(e) {
+  const items = document.querySelectorAll('.prod-item');
+  if (e.key === 'ArrowDown') { e.preventDefault(); kbIndex = Math.min(kbIndex+1, items.length-1); applyKbFocus(items); }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); kbIndex = Math.max(kbIndex-1, 0); applyKbFocus(items); }
+  else if (e.key === 'Enter' && kbIndex >= 0 && items[kbIndex]) { items[kbIndex].click(); }
+  else if (e.key === 'Escape') { clearSearch(); }
+}
+
+function applyKbFocus(items) {
+  items.forEach((el,i) => el.classList.toggle('kb-focus', i === kbIndex));
+  if (items[kbIndex]) items[kbIndex].scrollIntoView({ block:'nearest' });
+}
+
+function clearSearch() {
+  document.getElementById('search').value = '';
+  document.getElementById('search-clear').classList.remove('visible');
+  kbIndex = -1;
+  renderList();
+}
+
+function toggleSpecScope() {
+  searchSpecScope = !searchSpecScope;
+  document.getElementById('scope-specs-btn').classList.toggle('on', searchSpecScope);
+  renderList();
+}
+
+function setFamille(fam) {
+  filterFam = fam;
+  document.querySelectorAll('.fam-pill').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.fam === fam);
+  });
+  // Reset SF when famille changes
+  document.getElementById('f-sf').value = '';
+  updateSubFilters();
+  renderList();
+}
+
+function toggleStatusChip(type) {
+  filterStatus[type] = !filterStatus[type];
+  const chip = document.getElementById('chip-' + type);
+  chip.classList.remove('on-new','on-promo','on-epuise');
+  if (filterStatus[type]) chip.classList.add('on-' + type);
+  renderList();
+}
+
+function clearAllFilters() {
+  filterFam = ''; filterStatus = { new:false, promo:false, epuise:false };
+  clearSearch();
+  document.getElementById('f-marque').value = '';
+  document.getElementById('f-sf').value = '';
+  document.querySelectorAll('.fam-pill').forEach(b => b.classList.toggle('active', b.dataset.fam === ''));
+  document.querySelectorAll('.status-chip').forEach(c => c.className = 'status-chip');
+  renderList();
+}
+
+// ══════════════════════════════════════════════════════════════════
 // PRODUCT LIST
 // ══════════════════════════════════════════════════════════════════
 function updateMarqueFilter() {
-  const marques = [...new Set(allProducts.map(p => p.m).filter(Boolean))].sort();
+  const fam = filterFam;
+  const pool = fam ? allProducts.filter(p => (p.famille||'batteries') === fam) : allProducts;
+  const marques = [...new Set(pool.map(p => p.m).filter(Boolean))].sort();
   const sel = document.getElementById('f-marque');
+  const cur = sel.value;
   sel.innerHTML = '<option value="">Toutes marques</option>' +
-    marques.map(m => `<option value="${m}">${m}</option>`).join('');
+    marques.map(m => `<option value="${m}" ${m===cur?'selected':''}>${m}</option>`).join('');
+  sel.classList.toggle('active', !!sel.value);
+}
+
+function updateSubFilters() {
+  // Update SF options for selected famille
+  const fam = filterFam;
+  const pool = fam ? allProducts.filter(p=>(p.famille||'batteries')===fam) : allProducts;
+  const sfs = [...new Set(pool.map(p=>p.sf).filter(Boolean))].sort();
+  const sfSel = document.getElementById('f-sf');
+  const curSf = sfSel.value;
+  sfSel.innerHTML = '<option value="">Toutes s/familles</option>' + sfs.map(s=>`<option value="${s}" ${s===curSf?'selected':''}>${s}</option>`).join('');
+  sfSel.classList.toggle('active', !!sfSel.value);
+  updateMarqueFilter();
+}
+
+function updateFamCounts() {
+  const fams = ['batteries','piles','eclairages','charge-demarrage','lubrifiants'];
+  document.getElementById('cnt-all').textContent = allProducts.length;
+  fams.forEach(f => {
+    const el = document.getElementById('cnt-' + (f==='charge-demarrage'?'charge':f));
+    if (el) el.textContent = allProducts.filter(p=>(p.famille||'batteries')===f).length;
+  });
+}
+
+function highlightText(str, q) {
+  if (!q) return esc(str);
+  const idx = str.toLowerCase().indexOf(q.toLowerCase());
+  if (idx < 0) return esc(str);
+  return esc(str.slice(0, idx)) + `<mark class="hl">${esc(str.slice(idx, idx+q.length))}</mark>` + esc(str.slice(idx+q.length));
+}
+
+function renderActiveFilters() {
+  const chips = [];
+  const q = document.getElementById('search').value.trim();
+  const mk = document.getElementById('f-marque').value;
+  const sf = document.getElementById('f-sf').value;
+  if (filterFam) chips.push({ label: FAM_LABELS[filterFam], rm: () => setFamille('') });
+  if (mk) chips.push({ label: '🏭 ' + mk, rm: () => { document.getElementById('f-marque').value=''; renderList(); }});
+  if (sf) chips.push({ label: '📂 ' + sf, rm: () => { document.getElementById('f-sf').value=''; renderList(); }});
+  if (filterStatus.new) chips.push({ label:'🆕 Nouveauté', rm: ()=>toggleStatusChip('new') });
+  if (filterStatus.promo) chips.push({ label:'🏷️ Prix', rm: ()=>toggleStatusChip('promo') });
+  if (filterStatus.epuise) chips.push({ label:'⚠️ Épuisé', rm: ()=>toggleStatusChip('epuise') });
+  const af = document.getElementById('active-filters');
+  if (chips.length === 0) { af.innerHTML = ''; return; }
+  af.innerHTML = chips.map((c,i) =>
+    `<span class="af-chip">${esc(c.label)}<span class="rm" onclick="afRemove(${i})">×</span></span>`
+  ).join('') + `<button id="clear-all-btn" onclick="clearAllFilters()">Tout effacer</button>`;
+  // Store removers
+  af._removers = chips.map(c => c.rm);
+}
+function afRemove(i) {
+  const af = document.getElementById('active-filters');
+  if (af._removers && af._removers[i]) af._removers[i]();
 }
 
 function renderList() {
+  kbIndex = -1;
   const q = document.getElementById('search').value.trim().toLowerCase();
-  const fam = document.getElementById('f-famille').value;
   const mk = document.getElementById('f-marque').value;
   const sf = document.getElementById('f-sf').value;
-  const flag = document.getElementById('f-flag').value;
+  const sortVal = document.getElementById('sort-sel')?.value || 'ref-az';
+
+  document.getElementById('f-marque').classList.toggle('active', !!mk);
+  document.getElementById('f-sf').classList.toggle('active', !!sf);
 
   let items = allProducts.filter(p => {
-    if (fam && (p.famille || 'batteries') !== fam) return false;
+    if (filterFam && (p.famille||'batteries') !== filterFam) return false;
     if (mk && p.m !== mk) return false;
     if (sf && p.sf !== sf) return false;
-    if (flag === 'new' && !p.n) return false;
-    if (flag === 'promo' && !p.p) return false;
-    if (flag === 'epuise' && !p.e) return false;
+    if (filterStatus.new && !p.n) return false;
+    if (filterStatus.promo && !p.p) return false;
+    if (filterStatus.epuise && !p.e) return false;
     if (q) {
-      const hay = (p.r + ' ' + p.d + ' ' + (p.m||'') + ' ' + (p.sf||'')).toLowerCase();
+      let hay = ((p.r||'') + ' ' + (p.d||'') + ' ' + (p.m||'') + ' ' + (p.sf||'') + ' ' + (p.t||'') + ' ' + (p.g||'')).toLowerCase();
+      if (searchSpecScope && p.s) hay += ' ' + Object.values(p.s).join(' ').toLowerCase();
       if (!hay.includes(q)) return false;
     }
     return true;
   });
 
-  if (fam) {
-    const sfs = [...new Set(allProducts.filter(p=>(p.famille||'batteries')===fam).map(p=>p.sf).filter(Boolean))].sort();
-    const sfSel = document.getElementById('f-sf');
-    const curSf = sfSel.value;
-    sfSel.innerHTML = '<option value="">Toutes s/familles</option>' + sfs.map(s=>`<option value="${s}" ${s===curSf?'selected':''}>${s}</option>`).join('');
-  }
+  // Sort
+  items = [...items].sort((a,b) => {
+    if (sortVal==='ref-za') return (b.r||'').localeCompare(a.r||'');
+    if (sortVal==='desc-az') return (a.d||'').localeCompare(b.d||'');
+    if (sortVal==='marque-az') return ((a.m||'')+(a.r||'')).localeCompare((b.m||'')+(b.r||''));
+    return (a.r||'').localeCompare(b.r||''); // ref-az default
+  });
 
-  document.getElementById('sidebar-stats').textContent = `${items.length} produit${items.length>1?'s':''} • ${allProducts.length} au total`;
+  renderActiveFilters();
+
+  const count = items.length;
+  const statsEl = document.getElementById('sidebar-stats');
+  statsEl.innerHTML = `<span><span class="stat-count">${count}</span> résultat${count>1?'s':''}</span><span style="opacity:.4">${allProducts.length} total</span>`;
 
   const list = document.getElementById('product-list');
-  if (items.length === 0) { list.innerHTML = '<div class="empty">Aucun résultat</div>'; return; }
+  if (items.length === 0) {
+    const hasFilters = filterFam || mk || sf || filterStatus.new || filterStatus.promo || filterStatus.epuise || q;
+    list.innerHTML = `<div class="empty-state">
+      <div class="empty-icon">🔍</div>
+      <p>Aucun résultat${q?' pour «'+esc(q)+'»':''}</p>
+      ${hasFilters ? '<button class="reset-btn" onclick="clearAllFilters()">Réinitialiser les filtres</button>' : ''}
+    </div>`;
+    return;
+  }
 
-  list.innerHTML = items.slice(0, 500).map(p => {
+  const SLICE = 500;
+  list.innerHTML = items.slice(0, SLICE).map(p => {
     const fclass = FAM_BADGE[p.famille||'batteries']||'bat';
     const badges = [
       `<span class="badge ${fclass}">${FAM_LABELS[p.famille||'batteries']||'?'}</span>`,
@@ -1103,13 +1425,15 @@ function renderList() {
       p.e ? '<span class="badge epuise">ÉPUISÉ</span>' : ''
     ].filter(Boolean).join('');
     const active = p.r === currentRef ? 'active' : '';
-    return `<div class="prod-item ${active}" onclick="openProduct('${esc(p.r)}')">
-      <div class="prod-ref">${esc(p.r)}</div>
-      <div class="prod-desc">${esc(p.d)}</div>
+    const refHl = q ? highlightText(p.r||'', q) : esc(p.r||'');
+    const descHl = q ? highlightText(p.d||'', q) : esc(p.d||'');
+    return `<div class="prod-item ${active}" onclick="openProduct('${esc(p.r)}')" tabindex="-1">
+      <div class="prod-ref">${refHl}</div>
+      <div class="prod-desc">${descHl}</div>
       <div class="prod-meta">${badges}</div>
     </div>`;
   }).join('');
-  if (items.length > 500) list.innerHTML += `<div class="empty">… et ${items.length-500} autres</div>`;
+  if (items.length > SLICE) list.innerHTML += `<div class="empty-state" style="padding:16px"><p style="font-size:11px">… et ${items.length-SLICE} autres — affinez la recherche</p></div>`;
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -1124,7 +1448,7 @@ function openProduct(ref) {
 
 function createNewProduct(prefill) {
   currentRef = null; isNewProduct = true; photoBlob = null;
-  const empty = prefill || { id:'', r:'', sap:'', d:'', m:'', sf:'', t:'', g:'', famille:'batteries', s:{}, n:false, p:false, e:false };
+  const empty = prefill || { id:'', r:'', sap:'', d:'', m:'', sf:'', t:'', g:'', famille:'batteries', s:{}, n:false, p:false, e:false, metiers:[] };
   populateEditor(empty);
   switchTab('products');
 }
@@ -1138,14 +1462,16 @@ function populateEditor(p) {
   document.getElementById('f-sap').value = p.sap || '';
   document.getElementById('f-d').value = p.d || '';
   document.getElementById('f-m').value = p.m || '';
-  document.getElementById('f-sf-prod').value = p.sf || '';
-  document.getElementById('f-t').value = p.t || '';
-  document.getElementById('f-g').value = p.g || '';
   document.getElementById('f-id').value = p.id || '';
   document.getElementById('f-n').checked = !!p.n;
   document.getElementById('f-p').checked = !!p.p;
+  document.getElementById('f-promo').checked = !!p.promo;
   document.getElementById('f-e').checked = !!p.e;
   document.getElementById('f-famille-prod').value = p.famille || 'batteries';
+  updateSFSelect(p.famille || 'batteries', p.sf || '');
+  updateTypeSelect(p.famille || 'batteries', p.t || '');
+  updateGroupeSelect(p.famille || 'batteries', p.g || '');
+  renderMetiersCheckboxes(p.metiers || []);
   renderSpecRows(p.s || {}, p.famille || 'batteries');
   updateSpecHints(p.famille || 'batteries');
   const photoKey = p.id || ('ecl-'+p.r);
@@ -1156,7 +1482,21 @@ function populateEditor(p) {
 }
 
 function onFamilleChange() {
-  updateSpecHints(document.getElementById('f-famille-prod').value);
+  const fam = document.getElementById('f-famille-prod').value;
+  updateSFSelect(fam, '');
+  updateTypeSelect(fam, '');
+  updateGroupeSelect(fam, '');
+  updateSpecHints(fam);
+  // Si des specs sont déjà remplies, proposer de les réinitialiser
+  const hasSpecs = document.querySelectorAll('#specs-tbody tr').length > 0;
+  const hasValues = [...document.querySelectorAll('#specs-tbody .spec-val-input')].some(i => i.value.trim());
+  if (hasSpecs && hasValues) {
+    if (confirm(`Vous avez changé la famille vers "${fam}".\n\nRéinitialiser les caractéristiques techniques avec les champs par défaut de cette famille ?`)) {
+      renderSpecRows({}, fam);
+    }
+  } else {
+    renderSpecRows({}, fam);
+  }
 }
 
 function updateSpecHints(fam) {
@@ -1206,17 +1546,21 @@ function saveProduct() {
   const autoId = fam==='batteries'?'bat-'+r : fam==='piles'?'pile-'+r.replace(/[^a-z0-9]/gi,'_').toLowerCase()
     : fam==='eclairages'?'ecl-'+r : fam==='charge-demarrage'?'cd-'+r : fam==='lubrifiants'?'lub-'+r : r;
   const idVal = document.getElementById('f-id').value.trim() || autoId;
+  const sfVal = document.getElementById('f-sf-prod').value;
+  const selectedMetiers = collectSelectedMetiers();
   const product = {
     id: idVal, r, sap: document.getElementById('f-sap').value.trim(),
     d, m: document.getElementById('f-m').value.trim(),
-    sf: document.getElementById('f-sf-prod').value.trim(),
-    t: document.getElementById('f-t').value.trim(),
-    g: document.getElementById('f-g').value.trim(),
+    sf: sfVal === '__custom__' ? '' : sfVal,
+    t: getTypeValue(),
+    g: getGroupeValue(),
     famille: fam, s: collectSpecs(),
     n: document.getElementById('f-n').checked,
     p: document.getElementById('f-p').checked,
+    promo: document.getElementById('f-promo').checked,
     e: document.getElementById('f-e').checked,
   };
+  if (selectedMetiers.length > 0) product.metiers = selectedMetiers;
   const photoPath = document.getElementById('f-photo-path').value.trim();
   if (photoPath) photoMap[idVal] = photoPath; else delete photoMap[idVal];
   if (isNewProduct) {
@@ -1235,6 +1579,7 @@ function saveProduct() {
     showToast(`✅ "${r}" enregistré`);
   }
   renderList();
+  updateFamCounts();
   document.getElementById('editor-title').textContent = `Édition — ${r}`;
   document.getElementById('delete-btn').style.display = '';
   refreshMetierPreviews();
@@ -1248,7 +1593,7 @@ function deleteProduct() {
   currentRef = null;
   document.getElementById('editor').style.display = 'none';
   document.getElementById('editor-placeholder').style.display = '';
-  renderList(); showToast(`🗑️ Produit supprimé`);
+  renderList(); updateFamCounts(); showToast(`🗑️ Produit supprimé`);
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -1812,6 +2157,422 @@ document.addEventListener('keydown', e => {
 document.querySelectorAll('#me-familles input').forEach(cb => cb.addEventListener('change', updateMetierPreview));
 document.getElementById('me-courant-min').addEventListener('input', updateMetierPreview);
 document.getElementById('me-courant-max').addEventListener('input', updateMetierPreview);
+
+// ══════════════════════════════════════════════════════════════════
+// TYPE / GAMME CONFIG — Dropdowns par famille
+// ══════════════════════════════════════════════════════════════════
+const TYPE_OPTIONS = {
+  batteries: ['AGM','EFB','GEL','Standard','LI-ION','Lithium','DUAL AGM','DUAL EFB','DUAL FLOODED',
+    'AGM Auxiliaire','AGM DRY CHARGED','AGM READY','CONVENTIONAL','Classic','EQUIPMENT AGM','EQUIPMENT GEL',
+    'Excell','Excell Hot Climate','GEL Pro','HD Pro','SHD Pro','MAXXIMA','Marine','Premium','VINTAGE'],
+  piles: ['Alcaline','Lithium',"Oxyde d'Argent",'NiMH','Zinc','Rechargeable','Rechargeable USB-C'],
+  eclairages: ['Torche','Frontale','Lanterne','Projecteur','Lampe de travail','Lampe UV','Powerbank','Eclairage','Accessoire'],
+  'charge-demarrage': ['Chargeur','Chargeur-Démarreur','Booster Lithium','Station Energie','Power Station',
+    'Solaire','Batterie LFP','Testeur','Compresseur','Convertisseur','Câbles','Accessoire'],
+  lubrifiants: ['Huile moteur','Huile boite','Graisse','Additif','Liquide de frein','Antigel']
+};
+
+const GAMME_OPTIONS = {
+  batteries: ['Automotive SLI (EN)','Automotive SLI (JIS)','Automotive AGM','Automotive EFB',
+    'Commercial (EN)','Commercial (JIS)','Commercial AGM','Commercial EFB',
+    'Marine & loisirs','Marine & loisirs AGM','Marine & loisirs EFB',
+    'Batteries auxiliaires','Batterie stationnaire','Batterie cyclage',
+    'OPzV Tubulaire GEL','OPzS Tubulaire','Lithium+ LFP/NMC','Modèles spéciaux'],
+  piles: ['Alcaline Standard','Alcaline Longlife','Alcaline Coin','Lithium Coin','Lithium Photo',
+    "Oxyde d'Argent",'Zinc Carbon','NiMH Standard','NiMH Premium','Rechargeable USB-C',
+    'Industrielles','Audio','Montres'],
+  eclairages: ['Torches','Frontales','Lanternes','Projecteurs','Lampes de Travail','Accessoires'],
+  'charge-demarrage': ['Chargeurs de batterie','Démarreurs Lithium Portables','Stations Énergie',
+    'Panneaux solaires','Testeurs de batteries','Câbles de démarrage','Accessoires'],
+  lubrifiants: ['Lubrifiants VL','Lubrifiants PL','Agriculture','Industrie','Transmissions']
+};
+
+function updateTypeSelect(fam, currentVal) {
+  const sel = document.getElementById('f-t');
+  const opts = TYPE_OPTIONS[fam] || [];
+  sel.innerHTML = '<option value="">— aucun —</option>' +
+    opts.map(v => `<option value="${esc(v)}"${v === currentVal ? ' selected' : ''}>${esc(v)}</option>`).join('') +
+    '<option value="__custom__">✏️ Personnalisé…</option>';
+  const customInput = document.getElementById('f-t-custom');
+  if (currentVal && !opts.includes(currentVal)) {
+    const opt = document.createElement('option');
+    opt.value = currentVal; opt.textContent = currentVal; opt.selected = true;
+    sel.insertBefore(opt, sel.lastChild);
+    customInput.style.display = 'none';
+  } else {
+    customInput.style.display = 'none';
+    if (!currentVal) customInput.value = '';
+  }
+}
+
+function onTypeSelectChange() {
+  const sel = document.getElementById('f-t');
+  const customInput = document.getElementById('f-t-custom');
+  customInput.style.display = sel.value === '__custom__' ? '' : 'none';
+  if (sel.value === '__custom__') customInput.focus();
+}
+
+function getTypeValue() {
+  const sel = document.getElementById('f-t');
+  if (sel.value === '__custom__') return document.getElementById('f-t-custom').value.trim();
+  return sel.value;
+}
+
+function updateGroupeSelect(fam, currentVal) {
+  const sel = document.getElementById('f-g');
+  const opts = GAMME_OPTIONS[fam] || [];
+  sel.innerHTML = '<option value="">— aucun —</option>' +
+    opts.map(v => `<option value="${esc(v)}"${v === currentVal ? ' selected' : ''}>${esc(v)}</option>`).join('') +
+    '<option value="__custom__">✏️ Personnalisé…</option>';
+  const customInput = document.getElementById('f-g-custom');
+  if (currentVal && !opts.includes(currentVal)) {
+    const opt = document.createElement('option');
+    opt.value = currentVal; opt.textContent = currentVal; opt.selected = true;
+    sel.insertBefore(opt, sel.lastChild);
+    customInput.style.display = 'none';
+  } else {
+    customInput.style.display = 'none';
+    if (!currentVal) customInput.value = '';
+  }
+}
+
+function onGroupeSelectChange() {
+  const sel = document.getElementById('f-g');
+  const customInput = document.getElementById('f-g-custom');
+  customInput.style.display = sel.value === '__custom__' ? '' : 'none';
+  if (sel.value === '__custom__') customInput.focus();
+}
+
+function getGroupeValue() {
+  const sel = document.getElementById('f-g');
+  if (sel.value === '__custom__') return document.getElementById('f-g-custom').value.trim();
+  return sel.value;
+}
+
+// ══════════════════════════════════════════════════════════════════
+// SF CONFIG — Sous-familles par famille (localStorage)
+// ══════════════════════════════════════════════════════════════════
+const SF_DEFAULT = {
+  batteries: [
+    {v:'demarrage-vl', l:'Démarrage VL'}, {v:'demarrage-commercial', l:'Commercial / PL'},
+    {v:'marine-loisirs', l:'Marine & Loisirs'}, {v:'batterie-stationnaire', l:'Batterie Stationnaire'},
+    {v:'batterie-cyclage', l:'Batterie Cyclage'}, {v:'batterie-gel', l:'Batterie GEL'},
+    {v:'batterie-industrie', l:'Industrie / OPzV / OPzS'}
+  ],
+  piles: [
+    {v:'piles-standard', l:'Piles Standard'}, {v:'piles-electroniques', l:'Piles Électroniques'},
+    {v:'piles-rechargeables', l:'Piles Rechargeables'}, {v:'piles-speciales', l:'Piles Spéciales'}
+  ],
+  eclairages: [
+    {v:'torches', l:'Torches'}, {v:'frontales', l:'Frontales'},
+    {v:'lanternes', l:'Lanternes'}, {v:'projecteurs', l:'Projecteurs'},
+    {v:'lampes-travail', l:'Lampes de Travail'}
+  ],
+  'charge-demarrage': [
+    {v:'chargeurs', l:'Chargeurs'}, {v:'charge-start', l:'Charge & Start'},
+    {v:'demarreurs-lithium', l:'Démarreurs Lithium'}, {v:'accessoires-energie', l:'Énergie Portable'},
+    {v:'accessoires-cables', l:'Câbles & Accessoires'}, {v:'testeurs-batteries', l:'Testeurs Batteries'}
+  ],
+  lubrifiants: [
+    {v:'lubrifiants-vl', l:'Lubrifiants VL'}, {v:'lubrifiants-pl', l:'Lubrifiants PL'},
+    {v:'lubrifiants-agri', l:'Agriculture'}, {v:'lubrifiants-industrie', l:'Industrie'},
+    {v:'lubrifiants-transmissions', l:'Transmissions'}
+  ]
+};
+let sfConfig = JSON.parse(localStorage.getItem('az_sf_config') || 'null') || JSON.parse(JSON.stringify(SF_DEFAULT));
+
+function saveSFConfigLS() { localStorage.setItem('az_sf_config', JSON.stringify(sfConfig)); }
+
+function updateSFSelect(fam, currentVal) {
+  const sel = document.getElementById('f-sf-prod');
+  const list = sfConfig[fam] || [];
+  sel.innerHTML = '<option value="">— aucune —</option>' +
+    list.map(s => `<option value="${s.v}" ${s.v === currentVal ? 'selected' : ''}>${esc(s.l)}</option>`).join('') +
+    `<option value="__custom__">✏️ Valeur personnalisée…</option>`;
+  // Restore custom value if not in list
+  if (currentVal && !list.find(s => s.v === currentVal)) {
+    const opt = document.createElement('option');
+    opt.value = currentVal; opt.textContent = currentVal; opt.selected = true;
+    sel.insertBefore(opt, sel.lastChild);
+  }
+}
+
+// ── SF Manager Modal ─────────────────────────────────────────────
+function openSFManager() {
+  // Build grid
+  const grid = document.getElementById('sf-manager-grid');
+  grid.innerHTML = Object.entries(FAM_LABELS).map(([fam, label]) => {
+    const tags = (sfConfig[fam]||[]).map(s =>
+      `<span class="sf-tag">${esc(s.l)} <span class="del-tag" onclick="removeSFTag('${fam}','${s.v}')">×</span></span>`
+    ).join('');
+    return `<div class="sf-fam-col">
+      <h4>${label}</h4>
+      <div class="sf-tag-list" id="sft-${fam}">${tags}</div>
+      <div class="sf-add-row">
+        <input type="text" id="sfin-${fam}" placeholder="ex: nouvelle-sf" onkeydown="if(event.key==='Enter')addSFTag('${fam}')">
+        <button onclick="addSFTag('${fam}')">＋</button>
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('modal-sf').style.display = 'flex';
+}
+function closeSFManager() { document.getElementById('modal-sf').style.display = 'none'; }
+
+function addSFTag(fam) {
+  const inp = document.getElementById('sfin-' + fam);
+  const raw = inp.value.trim();
+  if (!raw) return;
+  const v = raw.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9\-]/g,'');
+  const l = raw;
+  if (!sfConfig[fam]) sfConfig[fam] = [];
+  if (sfConfig[fam].find(s => s.v === v)) { inp.value=''; return; }
+  sfConfig[fam].push({v, l});
+  inp.value = '';
+  // Re-render tags
+  const tagList = document.getElementById('sft-' + fam);
+  tagList.innerHTML = sfConfig[fam].map(s =>
+    `<span class="sf-tag">${esc(s.l)} <span class="del-tag" onclick="removeSFTag('${fam}','${s.v}')">×</span></span>`
+  ).join('');
+}
+function removeSFTag(fam, v) {
+  if (!sfConfig[fam]) return;
+  sfConfig[fam] = sfConfig[fam].filter(s => s.v !== v);
+  const tagList = document.getElementById('sft-' + fam);
+  if (tagList) tagList.innerHTML = sfConfig[fam].map(s =>
+    `<span class="sf-tag">${esc(s.l)} <span class="del-tag" onclick="removeSFTag('${fam}','${s.v}')">×</span></span>`
+  ).join('');
+}
+function saveSFConfig() {
+  saveSFConfigLS();
+  closeSFManager();
+  // Refresh current SF dropdown
+  const fam = document.getElementById('f-famille-prod').value;
+  const cur = document.getElementById('f-sf-prod').value;
+  updateSFSelect(fam, cur);
+  showToast('✅ Configuration SF sauvegardée');
+}
+function resetSFConfig() {
+  if (!confirm('Restaurer les sous-familles par défaut ? Vos personnalisations seront perdues.')) return;
+  sfConfig = JSON.parse(JSON.stringify(SF_DEFAULT));
+  saveSFConfigLS();
+  openSFManager(); // re-render
+  showToast('↺ SF réinitialisées');
+}
+
+// ── Custom SF input handler ──────────────────────────────────────
+document.getElementById('f-sf-prod').addEventListener('change', function() {
+  if (this.value === '__custom__') {
+    const custom = prompt('Saisir la valeur de sous-famille :','');
+    if (custom && custom.trim()) {
+      const opt = document.createElement('option');
+      opt.value = custom.trim(); opt.textContent = custom.trim(); opt.selected = true;
+      this.insertBefore(opt, this.lastChild);
+      this.value = custom.trim();
+    } else {
+      this.value = '';
+    }
+  }
+});
+
+// ══════════════════════════════════════════════════════════════════
+// MÉTIERS — Multi-select checkboxes in product editor
+// ══════════════════════════════════════════════════════════════════
+function renderMetiersCheckboxes(selectedMetiers) {
+  const wrap = document.getElementById('metiers-checkboxes');
+  if (!metiersConfig || metiersConfig.length === 0) {
+    wrap.innerHTML = '<span style="font-size:12px;color:var(--text3);font-style:italic">Aucun métier configuré — allez dans l\'onglet PDF Métiers pour en créer.</span>';
+    return;
+  }
+  const sel = selectedMetiers || [];
+  wrap.innerHTML = metiersConfig.map(m => {
+    const checked = sel.includes(m.key);
+    return `<label class="metier-cb-label${checked?' checked':''}" id="mcbl-${m.key}">
+      <input type="checkbox" value="${m.key}" ${checked?'checked':''} onchange="onMetierCbChange(this,'${m.key}')">
+      <span>${m.icon} ${esc(m.label)}</span>
+    </label>`;
+  }).join('');
+}
+function onMetierCbChange(cb, key) {
+  const lbl = document.getElementById('mcbl-' + key);
+  if (lbl) lbl.classList.toggle('checked', cb.checked);
+}
+function collectSelectedMetiers() {
+  return [...document.querySelectorAll('#metiers-checkboxes input[type=checkbox]:checked')].map(cb => cb.value);
+}
+
+// ══════════════════════════════════════════════════════════════════
+// EXCEL IMPORT
+// ══════════════════════════════════════════════════════════════════
+let xlsxRows = [], xlsxHeaders = [], xlsxMapping = {};
+
+// Field aliases for auto-detection
+const FIELD_ALIASES = {
+  r:    ['ref','référence','reference','réf','réference'],
+  sap:  ['sap','code sap','codesap'],
+  d:    ['description','libellé','libelle','desc','désignation','designation'],
+  m:    ['marque','brand','mk','fabricant'],
+  famille: ['famille','family','catégorie','categorie'],
+  sf:   ['sous-famille','sous famille','sousfamille','sf','subfamily','sous-fam'],
+  t:    ['type','technologie','tech'],
+  g:    ['groupe','gamme','group','game'],
+  n:    ['nouveauté','nouveaute','new','nouveau'],
+  p:    ['promo','prix','promotion'],
+  e:    ['épuisé','epuise','rupture','out of stock']
+};
+
+function openXlsxImport() {
+  document.getElementById('xlsx-step-upload').style.display = 'block';
+  document.getElementById('xlsx-step-preview').style.display = 'none';
+  document.getElementById('xlsx-modal-foot').style.display = 'none';
+  document.getElementById('modal-xlsx').style.display = 'flex';
+  xlsxRows = []; xlsxHeaders = []; xlsxMapping = {};
+}
+function closeXlsxImport() { document.getElementById('modal-xlsx').style.display = 'none'; }
+function xlsxBack() {
+  document.getElementById('xlsx-step-upload').style.display = 'block';
+  document.getElementById('xlsx-step-preview').style.display = 'none';
+  document.getElementById('xlsx-modal-foot').style.display = 'none';
+}
+
+function handleXlsxDrop(e) {
+  const file = e.dataTransfer.files[0]; if (!file) return;
+  parseXlsxFile(file);
+}
+function handleXlsxFile(input) {
+  const file = input.files[0]; if (!file) return;
+  parseXlsxFile(file);
+  input.value = '';
+}
+
+function parseXlsxFile(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const wb = XLSX.read(e.target.result, {type:'array'});
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const data = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
+      if (!data || data.length < 2) { showToast('Fichier vide ou sans données', true); return; }
+      xlsxHeaders = data[0].map(h => String(h||'').trim());
+      xlsxRows = data.slice(1).filter(r => r.some(c => String(c||'').trim()));
+      buildXlsxMapping();
+      renderXlsxPreview();
+    } catch(err) { showToast('Erreur lecture Excel : ' + err.message, true); }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function buildXlsxMapping() {
+  xlsxMapping = {};
+  xlsxHeaders.forEach((h, idx) => {
+    const hl = h.toLowerCase().trim();
+    // Try known product fields
+    for (const [field, aliases] of Object.entries(FIELD_ALIASES)) {
+      if (!xlsxMapping[field] && aliases.some(a => hl === a || hl.startsWith(a))) {
+        xlsxMapping[field] = idx;
+        return;
+      }
+    }
+    // Unknown columns go to specs
+    if (h) xlsxMapping['spec:' + h] = idx;
+  });
+}
+
+function renderXlsxPreview() {
+  document.getElementById('xlsx-step-upload').style.display = 'none';
+  document.getElementById('xlsx-step-preview').style.display = 'block';
+  document.getElementById('xlsx-modal-foot').style.display = 'flex';
+
+  const total = xlsxRows.length;
+  const existing = xlsxRows.filter(r => {
+    const ref = String(r[xlsxMapping.r ?? -1] || '').trim();
+    return ref && allProducts.find(p => p.r === ref);
+  }).length;
+
+  document.getElementById('xlsx-stats').innerHTML =
+    `<strong>${total}</strong> lignes détectées — <strong>${total - existing}</strong> nouveaux produits, <strong>${existing}</strong> existants (seront mis à jour)`;
+  document.getElementById('xlsx-foot-info').textContent =
+    `${total} produit(s) à importer`;
+
+  // Column mapping UI
+  const fieldLabels = { r:'Référence*', sap:'SAP', d:'Description*', m:'Marque', famille:'Famille',
+    sf:'Sous-famille', t:'Type/Tech', g:'Groupe', n:'Nouveauté', p:'Promo', e:'Épuisé' };
+  const mapEl = document.getElementById('xlsx-col-map');
+  mapEl.innerHTML = Object.entries(fieldLabels).map(([f, lbl]) => {
+    const curIdx = xlsxMapping[f] ?? '';
+    const opts = xlsxHeaders.map((h,i) => `<option value="${i}" ${i==curIdx?'selected':''}>${esc(h)}</option>`).join('');
+    return `<div class="col-map-item">
+      <label>${lbl}</label>
+      <select onchange="xlsxMapping['${f}']=this.value===''?undefined:+this.value">
+        <option value="">— ignorer —</option>
+        ${opts}
+      </select>
+    </div>`;
+  }).join('');
+
+  // Preview table
+  const cols = [...Object.entries(fieldLabels).map(([f, l]) => ({key:f, label:l, idx:xlsxMapping[f]})),
+    ...Object.entries(xlsxMapping).filter(([k]) => k.startsWith('spec:')).map(([k, idx]) => ({key:k, label:k.replace('spec:',''), idx}))
+  ].filter(c => c.idx !== undefined);
+
+  const rows = xlsxRows.slice(0, 50);
+  const tableHtml = `<table>
+    <thead><tr>${cols.map(c => `<th>${esc(c.label)}</th>`).join('')}</tr></thead>
+    <tbody>${rows.map(r => {
+      const ref = String(r[xlsxMapping.r ?? -1]||'').trim();
+      const isExisting = ref && allProducts.find(p => p.r === ref);
+      return `<tr class="${isExisting?'':''}">
+        ${cols.map(c => `<td title="${esc(String(r[c.idx]||''))}">${esc(String(r[c.idx]||'').substring(0,40))}</td>`).join('')}
+      </tr>`;
+    }).join('')}
+    ${xlsxRows.length > 50 ? `<tr><td colspan="${cols.length}" style="text-align:center;color:var(--text3);font-style:italic">… et ${xlsxRows.length-50} autres lignes</td></tr>` : ''}
+    </tbody>
+  </table>`;
+  document.getElementById('xlsx-preview-wrap').innerHTML = tableHtml;
+}
+
+function confirmXlsxImport() {
+  if (!xlsxRows.length) return;
+  let created = 0, updated = 0, skipped = 0;
+  xlsxRows.forEach(row => {
+    const ref = String(row[xlsxMapping.r ?? -1] || '').trim();
+    if (!ref) { skipped++; return; }
+    const fam = String(row[xlsxMapping.famille ?? -1] || 'batteries').trim().toLowerCase() || 'batteries';
+    const sfVal = String(row[xlsxMapping.sf ?? -1] || '').trim();
+    const specs = {};
+    for (const [k, idx] of Object.entries(xlsxMapping)) {
+      if (k.startsWith('spec:') && idx !== undefined) {
+        const specKey = k.replace('spec:','').toLowerCase().replace(/\s+/g,'_');
+        const val = String(row[idx]||'').trim();
+        if (val) specs[specKey] = val;
+      }
+    }
+    const g = v => idx => idx !== undefined ? String(row[idx]||'').trim() : '';
+    const boolVal = idx => { if (idx === undefined) return false; const v=String(row[idx]||'').trim().toLowerCase(); return v==='1'||v==='oui'||v==='yes'||v==='true'||v==='x'; };
+    const famPfx = {batteries:'bat-',piles:'pile-',eclairages:'ecl-','charge-demarrage':'cd-',lubrifiants:'lub-'};
+    const product = {
+      id: (famPfx[fam]||'') + ref,
+      r: ref,
+      sap: g()(xlsxMapping.sap),
+      d: g()(xlsxMapping.d) || ref,
+      m: g()(xlsxMapping.m),
+      sf: sfVal,
+      t: g()(xlsxMapping.t),
+      g: g()(xlsxMapping.g),
+      famille: fam,
+      s: specs,
+      n: boolVal(xlsxMapping.n),
+      p: boolVal(xlsxMapping.p),
+      e: boolVal(xlsxMapping.e)
+    };
+    const idx = allProducts.findIndex(x => x.r === ref);
+    if (idx >= 0) { allProducts[idx] = {...allProducts[idx], ...product}; updated++; }
+    else { allProducts.push(product); created++; }
+  });
+  closeXlsxImport();
+  renderList(); updateFamCounts(); refreshMetierPreviews();
+  setStatus('ok', `✅ ${allProducts.length} produits`);
+  showToast(`📊 Import terminé : ${created} créés, ${updated} mis à jour${skipped?' ('+skipped+' ignorés)':''}`);
+}
 </script>
 
 

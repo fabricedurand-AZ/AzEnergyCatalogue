@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 80" width="220" height="80">
+  <defs>
+    <linearGradient id="gA" x1="0" y1="0" x2="0.5" y2="1">
+      <stop offset="0%" stop-color="#FFD600"/>
+      <stop offset="100%" stop-color="#F59200"/>
+    </linearGradient>
+    <linearGradient id="gBolt" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FFD600"/>
+      <stop offset="100%" stop-color="#F59200"/>
+    </linearGradient>
+  </defs>
+
+  <!-- ===== A (gold) ===== -->
+  <!-- Two legs converging to a peak, with crossbar -->
+  <polygon points="4,68 22,8 30,8 48,68 40,68 36,52 16,52 12,68" fill="url(#gA)"/>
+  <rect x="18" y="40" width="16" height="8" fill="url(#gA)" rx="1"/>
+
+  <!-- ===== Z (white with horizontal battery-cell cuts) ===== -->
+  <!-- Z as a composed shape: top bar + diagonal + bottom bar -->
+  <polygon points="52,8 96,8 96,20 70,60 96,60 96,68 48,68 48,56 74,16 52,16" fill="white"/>
+  <!-- Cut lines through Z body (dark, simulating battery cells) -->
+  <line x1="54" y1="27" x2="90" y2="27" stroke="#0d0d14" stroke-width="4.5" stroke-linecap="round"/>
+  <line x1="54" y1="38" x2="84" y2="38" stroke="#0d0d14" stroke-width="4.5" stroke-linecap="round"/>
+  <line x1="54" y1="49" x2="76" y2="49" stroke="#0d0d14" stroke-width="4.5" stroke-linecap="round"/>
+
+  <!-- ===== Lightning bolt (gold) ===== -->
+  <polygon points="106,4 93,36 103,36 88,72 120,32 107,32 122,4" fill="url(#gBolt)"/>
+
+  <!-- ===== ENERGY text ===== -->
+  <text x="1" y="79"
+    font-family="'Arial Black','Franklin Gothic Heavy','Impact',sans-serif"
+    font-weight="900"
+    font-size="22"
+    letter-spacing="5.5"
+    fill="white">ENERGY</text>
+</svg>

@@ -1,0 +1,1295 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AZEnergy — Calculateurs Batterie</title>
+<style>
+:root{
+  --gold:#D4A847;--gold2:#b8902e;--gold-light:rgba(212,168,71,.12);--gold-border:rgba(212,168,71,.25);
+  --bg:#0d0d1a;--card:linear-gradient(145deg,#1a1a2e,#16213e);--surface:#1e2240;--surface2:#252b50;
+  --border:rgba(255,255,255,.08);--text:#f0f0f8;--text2:#a0a8c0;--text3:#606880;
+  --green:#4ade80;--green-bg:rgba(74,222,128,.1);--green-border:rgba(74,222,128,.25);
+  --red:#f87171;--red-bg:rgba(248,113,113,.08);--orange:#fb923c;
+  --blue:#60a5fa;--blue-bg:rgba(96,165,250,.1);
+  --radius:14px;--radius-sm:9px;--shadow:0 4px 24px rgba(0,0,0,.4);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',Arial,sans-serif;min-height:100vh;overflow-x:hidden;padding-top:58px}
+
+/* ── HEADER ── */
+.header{display:none!important}
+.hdr-logo{font-size:22px;font-weight:800;color:var(--gold);letter-spacing:2px;text-decoration:none}
+.hdr-logo span{color:#fff}
+.hdr-title{font-size:11px;color:var(--text2);font-weight:600;letter-spacing:1px;text-transform:uppercase}
+.hdr-back{color:var(--text2);font-size:12px;font-weight:600;text-decoration:none;display:flex;align-items:center;gap:5px;padding:6px 12px;border:1px solid var(--border);border-radius:20px;transition:.2s;white-space:nowrap}
+.hdr-back:hover{color:var(--gold);border-color:var(--gold-border)}
+.hdr-center{text-align:center;flex:1}
+
+/* ── MAIN TABS ── */
+.main{padding:16px;max-width:720px;margin:0 auto}
+.tabs-wrap{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-bottom:20px}
+@media(min-width:480px){.tabs-wrap{grid-template-columns:repeat(4,1fr)}}
+.tab-btn{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 6px;cursor:pointer;transition:.2s;text-align:center;color:var(--text2);font-size:11px;font-weight:600;letter-spacing:.4px;text-transform:uppercase;display:flex;flex-direction:column;align-items:center;gap:4px}
+.tab-btn .ti{font-size:20px}
+.tab-btn:hover{border-color:var(--gold-border);color:var(--text)}
+.tab-btn.active{background:var(--gold-light);border-color:var(--gold-border);color:var(--gold)}
+.panel{display:none}.panel.active{display:block}
+
+/* ── CARDS ── */
+.calc-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:14px;box-shadow:var(--shadow)}
+.card-title{display:flex;align-items:center;gap:10px;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+.card-title .icon{font-size:22px}
+.card-title h2{font-size:14px;font-weight:700;color:var(--gold);letter-spacing:.5px;text-transform:uppercase;line-height:1.2}
+.card-title p{font-size:11px;color:var(--text2);margin-top:2px}
+
+/* ── FORM ELEMENTS ── */
+.fgroup{margin-bottom:12px}
+.flabel{font-size:10px;font-weight:700;color:var(--gold);letter-spacing:.8px;text-transform:uppercase;margin-bottom:5px;display:block}
+.frow{display:grid;gap:10px;margin-bottom:12px}
+.frow-2{grid-template-columns:1fr 1fr}
+.frow-3{grid-template-columns:1fr 1fr 1fr}
+input[type="number"],input[type="text"],select{width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;color:var(--text);font-family:'Segoe UI',Arial,sans-serif;font-size:14px;outline:none;transition:border-color .15s;-webkit-appearance:none;appearance:none}
+input:focus,select:focus{border-color:var(--gold-border)}
+input::placeholder{color:var(--text3)}
+.unit-hint{font-size:10px;color:var(--text3);margin-top:3px;font-style:italic}
+.divider{border:none;border-top:1px solid var(--border);margin:14px 0}
+
+/* ── BUTTONS ── */
+.btn-calc{width:100%;background:linear-gradient(135deg,var(--gold2),var(--gold));border:none;border-radius:var(--radius-sm);padding:13px;color:#0d0d1a;font-weight:800;font-size:14px;letter-spacing:.5px;cursor:pointer;transition:.15s;display:flex;align-items:center;justify-content:center;gap:7px;text-transform:uppercase}
+.btn-calc:hover{opacity:.9;transform:translateY(-1px);box-shadow:0 6px 20px rgba(212,168,71,.3)}
+.btn-calc:active{transform:translateY(0)}
+.btn-sm{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 14px;color:var(--text2);font-size:12px;cursor:pointer;transition:.15s}
+.btn-sm:hover{border-color:var(--gold-border);color:var(--text)}
+.btn-sm.red{border-color:rgba(248,113,113,.3);color:var(--red)}
+.btn-sm.red:hover{background:var(--red-bg)}
+
+/* ── RESULT BOX ── */
+.result-box{background:linear-gradient(135deg,#0d1520,#0f1a2e);border:1px solid var(--green-border);border-radius:var(--radius);padding:16px;margin-top:14px;display:none}
+.result-box.visible{display:block}
+.result-title{font-size:10px;font-weight:700;color:var(--green);letter-spacing:.8px;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.result-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.result-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px}
+.result-item .rv{font-size:20px;font-weight:800;color:var(--gold);font-family:'Segoe UI',Arial,sans-serif;line-height:1}
+.result-item .rl{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-top:3px}
+.result-item.full{grid-column:1/-1}
+.result-badge{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:.3px}
+.badge-SLI{background:rgba(96,165,250,.15);border:1px solid rgba(96,165,250,.3);color:var(--blue)}
+.badge-EFB{background:rgba(251,146,60,.15);border:1px solid rgba(251,146,60,.3);color:var(--orange)}
+.badge-AGM{background:var(--gold-light);border:1px solid var(--gold-border);color:var(--gold)}
+.badge-GEL{background:var(--green-bg);border:1px solid var(--green-border);color:var(--green)}
+.badge-LITHIUM{background:rgba(139,92,246,.15);border:1px solid rgba(139,92,246,.3);color:#a78bfa}
+.result-reco{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;margin-top:8px}
+.result-reco h4{font-size:11px;color:var(--gold);font-weight:700;margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px}
+.result-reco p{font-size:12px;color:var(--text2);line-height:1.6}
+.result-warn{background:rgba(251,146,60,.08);border:1px solid rgba(251,146,60,.25);border-radius:var(--radius-sm);padding:10px 12px;margin-top:8px;font-size:11px;color:var(--orange);line-height:1.6}
+.result-info{background:var(--blue-bg);border:1px solid rgba(96,165,250,.25);border-radius:var(--radius-sm);padding:10px 12px;margin-top:8px;font-size:11px;color:var(--blue);line-height:1.6}
+
+/* ── DEVICE LIST (Bluetti) ── */
+.device-list{margin-bottom:12px}
+.device-row{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 10px;margin-bottom:6px}
+.device-row input{flex:1;min-width:0;background:transparent;border:none;padding:2px 0;font-size:13px;color:var(--text)}
+.device-row input:focus{outline:none}
+.device-row .d-sep{color:var(--text3);font-size:12px;flex-shrink:0}
+.device-row .d-w{width:70px;flex-shrink:0}
+.device-row .d-h{width:50px;flex-shrink:0}
+.device-row .d-wh{width:60px;font-size:12px;font-weight:700;color:var(--gold);flex-shrink:0;text-align:right}
+.device-total{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--gold-light);border:1px solid var(--gold-border);border-radius:var(--radius-sm);font-size:12px;font-weight:700;color:var(--gold);margin-bottom:12px}
+.add-device-row{display:flex;gap:8px;margin-bottom:10px}
+.add-device-row input{flex:1;font-size:13px}
+.add-device-row .d-w{width:80px}
+.add-device-row .d-h{width:65px}
+.bluetti-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;margin-bottom:8px;cursor:default;transition:.2s}
+.bluetti-card.recommended{border-color:var(--gold-border);background:var(--gold-light)}
+.bluetti-card.too-small{opacity:.45}
+.bluetti-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.bluetti-name{font-size:14px;font-weight:800;color:var(--text)}
+.bluetti-cap{font-size:12px;color:var(--text2);margin-top:1px}
+.bluetti-badge-reco{background:var(--gold);color:#0d0d1a;font-size:9px;font-weight:800;padding:2px 8px;border-radius:20px;letter-spacing:.5px;flex-shrink:0}
+.bluetti-specs{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.bspec{background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:3px 8px;font-size:10px;color:var(--text2);font-weight:600}
+.bluetti-bar{height:5px;background:var(--border);border-radius:3px;margin-top:8px;overflow:hidden}
+.bluetti-bar-fill{height:100%;background:linear-gradient(90deg,var(--gold2),var(--gold));border-radius:3px;transition:width .5s ease}
+
+/* ── BLUETTI CAROUSEL ── */
+.bluetti-scroll{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scroll-snap-type:x mandatory;-ms-overflow-style:none;scrollbar-width:none}
+.bluetti-scroll::-webkit-scrollbar{display:none}
+.bluetti-item{flex:0 0 160px;scroll-snap-align:start}
+
+/* ── SEGMENT BUTTONS ── */
+.seg-group{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:4px}
+.seg-btn{padding:6px 12px;border-radius:20px;border:1.5px solid var(--border);background:transparent;color:var(--text2);font-size:11px;font-weight:600;cursor:pointer;transition:.15s;letter-spacing:.2px}
+.seg-btn:hover{border-color:var(--gold-border);color:var(--text)}
+.seg-btn.active{border-color:var(--gold-border);background:var(--gold-light);color:var(--gold)}
+
+/* ── SLIDER ── */
+.slider-row{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+.slider-row input[type=range]{flex:1;-webkit-appearance:none;height:4px;border-radius:2px;background:var(--surface2);border:none;cursor:pointer;padding:0}
+.slider-row input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--gold);cursor:pointer}
+.slider-val{font-size:14px;font-weight:800;color:var(--gold);min-width:48px;text-align:right;white-space:nowrap}
+
+/* ── BLUETTI SECTION ── */
+.b-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;margin-bottom:10px}
+.b-section-title{font-size:10px;font-weight:700;color:var(--gold);letter-spacing:.8px;text-transform:uppercase;margin-bottom:8px}
+
+/* ── FORMULA HINT ── */
+.formula{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 12px;font-size:10.5px;color:var(--text3);line-height:1.6;margin-top:8px;font-family:monospace}
+
+/* scrollbar */
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <a href="index.html" class="hdr-logo"><img src="data:image/png;base64,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" alt="AZ Energy" style="height:44px;width:auto;display:block"></a>
+  <div class="hdr-center">
+    <div style="font-size:13px;font-weight:700;color:#fff">Calculateurs</div>
+    <div class="hdr-title">Outils d'aide au dimensionnement</div>
+  </div>
+  <a href="index.html" class="hdr-back">← Accueil</a>
+</div>
+
+<div class="main">
+
+  <!-- TABS -->
+  <div class="tabs-wrap">
+    <button class="tab-btn active" onclick="switchTab('ups',this)">
+      <span class="ti">⚡</span>UPS / Backup
+    </button>
+    <button class="tab-btn" onclick="switchTab('bluetti',this)">
+      <span class="ti">🔌</span>Bluetti
+    </button>
+    <button class="tab-btn" onclick="switchTab('solaire',this)">
+      <span class="ti">☀️</span>Solaire
+    </button>
+    <button class="tab-btn" onclick="switchTab('residentiel',this)">
+      <span class="ti">🏠</span>Résidentiel
+    </button>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       PANEL 2 — UPS / BACKUP INDUSTRIEL
+  ══════════════════════════════════════════════════════════ -->
+  <div class="panel active" id="panel-ups">
+
+    <div class="calc-card">
+      <div class="card-title">
+        <span class="icon">⚡</span>
+        <div>
+          <h2>Dimensionnement UPS / Backup</h2>
+          <p>Calcul capacité pour alimentation de secours industrielle</p>
+        </div>
+      </div>
+
+      <div class="frow frow-3">
+        <div class="fgroup">
+          <span class="flabel">Tension système</span>
+          <select id="u-volt">
+            <option value="6">6 V</option>
+            <option value="12" selected>12 V</option>
+            <option value="24">24 V</option>
+            <option value="48">48 V</option>
+            <option value="110">110 V</option>
+            <option value="220">220 V</option>
+          </select>
+        </div>
+        <div class="fgroup">
+          <span class="flabel">Puissance (W)</span>
+          <input type="number" id="u-power" placeholder="ex: 500" min="10" max="500000" value="">
+        </div>
+        <div class="fgroup">
+          <span class="flabel">Autonomie</span>
+          <select id="u-time">
+            <option value="0.25">15 min</option>
+            <option value="0.5">30 min</option>
+            <option value="1" selected>1 heure</option>
+            <option value="2">2 heures</option>
+            <option value="4">4 heures</option>
+            <option value="8">8 heures</option>
+            <option value="24">24 heures</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="frow frow-2">
+        <div class="fgroup">
+          <span class="flabel">Technologie batterie</span>
+          <select id="u-techno">
+            <option value="agm">AGM VRLA (standard)</option>
+            <option value="gel">GEL (longue durée)</option>
+            <option value="opzs">OPzS (grande capacité)</option>
+            <option value="lithium">Lithium LFP</option>
+          </select>
+        </div>
+        <div class="fgroup">
+          <span class="flabel">Température ambiante</span>
+          <select id="u-temp">
+            <option value="cold">Froide (< 10°C)</option>
+            <option value="normal" selected>Normale (10–25°C)</option>
+            <option value="warm">Chaude (25–40°C)</option>
+            <option value="hot">Très chaude (> 40°C)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="frow frow-2">
+        <div class="fgroup">
+          <span class="flabel">Facteur de vieillissement</span>
+          <select id="u-age">
+            <option value="1">Neuve — coefficient ×1</option>
+            <option value="1.15">Normale — coefficient ×1.15</option>
+            <option value="1.3">Âgée — coefficient ×1.3</option>
+          </select>
+        </div>
+        <div class="fgroup">
+          <span class="flabel">Criticité de l'installation</span>
+          <select id="u-crit">
+            <option value="high">Critique — marge +30%</option>
+            <option value="normal" selected>Normale — marge +20%</option>
+            <option value="low">Économique — marge +10%</option>
+          </select>
+        </div>
+      </div>
+
+      <button class="btn-calc" onclick="calcUPS()">⚡ Calculer le dimensionnement</button>
+
+      <div class="result-box" id="res-ups">
+        <div class="result-title">✅ Résultat dimensionnement</div>
+        <div class="result-grid">
+          <div class="result-item">
+            <div class="rv" id="ru-ah">—</div>
+            <div class="rl">Capacité totale (Ah)</div>
+          </div>
+          <div class="result-item">
+            <div class="rv" id="ru-wh">—</div>
+            <div class="rl">Énergie totale (Wh)</div>
+          </div>
+          <div class="result-item">
+            <div class="rv" id="ru-nb">—</div>
+            <div class="rl">Nb batteries 100Ah</div>
+          </div>
+          <div class="result-item">
+            <div class="rv" id="ru-config">—</div>
+            <div class="rl">Configuration</div>
+          </div>
+        </div>
+        <div class="result-reco" id="ru-reco">
+          <h4>💡 Configuration recommandée</h4>
+          <p id="ru-conseil"></p>
+        </div>
+        <div class="formula" id="ru-formula"></div>
+        <div class="result-warn" id="ru-warn" style="display:none"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       PANEL 3 — STATION BLUETTI
+  ══════════════════════════════════════════════════════════ -->
+  <div class="panel" id="panel-bluetti">
+
+    <div class="calc-card">
+      <div class="card-title">
+        <span class="icon">🔌</span>
+        <div>
+          <h2>Station d'énergie Bluetti</h2>
+          <p>Recommandation de modèle selon votre consommation</p>
+        </div>
+      </div>
+
+      <!-- Devices -->
+      <div class="b-section">
+        <div class="b-section-title">🔌 Appareils à alimenter</div>
+        <div class="device-list" id="device-list"></div>
+
+        <!-- Add device row -->
+        <div class="add-device-row">
+          <input type="text" id="d-name" placeholder="Appareil (ex: Réfrigérateur)" class="fld">
+          <input type="number" id="d-power" placeholder="Watts" min="1" max="10000" class="d-w">
+          <input type="number" id="d-hours" placeholder="h/j" min="0.1" max="24" step="0.5" class="d-h">
+          <button class="btn-sm" onclick="addDevice()" title="Ajouter">+ Ajouter</button>
+        </div>
+        <div class="device-total" id="device-total" style="display:none">
+          <span>Consommation totale journalière</span>
+          <span id="d-total-wh">0 Wh</span>
+        </div>
+      </div>
+
+      <!-- Or direct input -->
+      <div class="b-section">
+        <div class="b-section-title">⚡ Ou saisie directe</div>
+        <div class="frow frow-2">
+          <div class="fgroup">
+            <span class="flabel">Consommation (Wh/jour)</span>
+            <input type="number" id="b-wh" placeholder="ex: 800" min="10" oninput="syncBluettiWh()">
+          </div>
+          <div class="fgroup">
+            <span class="flabel">Puissance de pointe (W)</span>
+            <input type="number" id="b-peak" placeholder="ex: 1200" min="10">
+            <div class="unit-hint">Puissance max simultanée de tous appareils</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Options -->
+      <div class="frow frow-2">
+        <div class="fgroup">
+          <span class="flabel">Autonomie souhaitée</span>
+          <select id="b-days">
+            <option value="0.5">Demi-journée (12h)</option>
+            <option value="1" selected>1 journée</option>
+            <option value="2">2 jours</option>
+            <option value="3">3 jours</option>
+            <option value="5">5 jours</option>
+          </select>
+        </div>
+        <div class="fgroup">
+          <span class="flabel">Recharge solaire disponible</span>
+          <select id="b-solar">
+            <option value="0">Non</option>
+            <option value="100">Panneau 100W</option>
+            <option value="200">Panneau 200W</option>
+            <option value="350">2 × 175W = 350W</option>
+            <option value="600">2 × 300W = 600W</option>
+            <option value="1200">4 × 300W = 1200W</option>
+          </select>
+        </div>
+      </div>
+
+      <button class="btn-calc" onclick="calcBluetti()">🔋 Trouver ma station Bluetti</button>
+
+      <div class="result-box" id="res-bluetti">
+        <div class="result-title">✅ Recommandation Bluetti</div>
+        <div class="result-grid">
+          <div class="result-item">
+            <div class="rv" id="rb-need">—</div>
+            <div class="rl">Capacité nécessaire (Wh)</div>
+          </div>
+          <div class="result-item">
+            <div class="rv" id="rb-solar-time">—</div>
+            <div class="rl">Recharge solaire</div>
+          </div>
+        </div>
+        <div id="rb-models"></div>
+        <div class="result-info" id="rb-tip" style="display:none"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       PANEL 4 — SOLAIRE & LOISIRS
+  ══════════════════════════════════════════════════════════ -->
+  <div class="panel" id="panel-solaire">
+
+    <div class="calc-card">
+      <div class="card-title">
+        <span class="icon">☀️</span>
+        <div>
+          <h2>Dimensionnement solaire & loisirs</h2>
+          <p>Camping-car, bateau, off-grid — cyclage profond</p>
+        </div>
+      </div>
+
+      <div class="fgroup">
+        <span class="flabel">Application</span>
+        <div class="seg-group" id="seg-solar-app">
+          <button class="seg-btn active" data-val="camping-car">🚐 Camping-car</button>
+          <button class="seg-btn" data-val="bateau">⛵ Bateau / Voilier</button>
+          <button class="seg-btn" data-val="cabanon">🏚️ Cabane / Off-grid</button>
+          <button class="seg-btn" data-val="solaire-professionnel">🏭 Solaire industriel</button>
+        </div>
+      </div>
+
+      <div class="frow frow-3">
+        <div class="fgroup">
+          <span class="flabel">Tension système</span>
+          <select id="s-volt">
+            <option value="12" selected>12 V</option>
+            <option value="24">24 V</option>
+            <option value="48">48 V</option>
+          </select>
+        </div>
+        <div class="fgroup">
+          <span class="flabel">Conso. journalière (Wh)</span>
+          <input type="number" id="s-wh" placeholder="ex: 600" min="10" value="">
+        </div>
+        <div class="fgroup">
+          <span class="flabel">Jours d'autonomie (sans soleil)</span>
+          <select id="s-days">
+            <option value="1">1 jour</option>
+            <option value="2" selected>2 jours</option>
+            <option value="3">3 jours</option>
+            <option value="5">5 jours</option>
+            <option value="7">7 jours (hiver)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="frow frow-2">
+        <div class="fgroup">
+          <span class="flabel">Technologie de batterie</span>
+          <select id="s-techno">
+            <option value="agm">AGM (DOD 50% recommandé)</option>
+            <option value="gel">GEL (DOD 60–70%)</option>
+            <option value="opzs">OPzS (DOD 70–80%)</option>
+            <option value="lithium">Lithium LFP (DOD 80–90%)</option>
+          </select>
+        </div>
+        <div class="fgroup">
+          <span class="flabel">Ensoleillement zone (h équiv./jour)</span>
+          <select id="s-sun">
+            <option value="2">2h — Nord de l'Europe / Hiver</option>
+            <option value="3">3h — France, Belgique, Allemagne</option>
+            <option value="4" selected>4h — Midi de la France / Espagne</option>
+            <option value="5">5h — Méditerranée / Été</option>
+            <option value="6">6h — Afrique du Nord</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="fgroup">
+        <span class="flabel">Puissance panneaux disponible (W) — optionnel</span>
+        <div class="slider-row">
+          <input type="range" id="s-panel-slider" min="0" max="2000" step="50" value="0" oninput="document.getElementById('s-panel-val').textContent=this.value+'W';document.getElementById('s-panel-input').value=this.value">
+          <span class="slider-val" id="s-panel-val">0W</span>
+        </div>
+        <input type="number" id="s-panel-input" placeholder="Ou saisie directe (W)" min="0" oninput="document.getElementById('s-panel-slider').value=this.value||0;document.getElementById('s-panel-val').textContent=(this.value||0)+'W'">
+      </div>
+
+      <button class="btn-calc" onclick="calcSolaire()">☀️ Calculer le dimensionnement</button>
+
+      <div class="result-box" id="res-solaire">
+        <div class="result-title">✅ Résultat dimensionnement solaire</div>
+        <div class="result-grid">
+          <div class="result-item">
+            <div class="rv" id="rs-ah">—</div>
+            <div class="rl">Capacité batterie (Ah)</div>
+          </div>
+          <div class="result-item">
+            <div class="rv" id="rs-wh">—</div>
+            <div class="rl">Énergie utile (Wh)</div>
+          </div>
+          <div class="result-item">
+            <div class="rv" id="rs-panel">—</div>
+            <div class="rl">Panneaux recommandés (W)</div>
+          </div>
+          <div class="result-item">
+            <div class="rv" id="rs-recharge">—</div>
+            <div class="rl">Recharge solaire (h)</div>
+          </div>
+        </div>
+        <div class="result-reco">
+          <h4>💡 Configuration recommandée</h4>
+          <p id="rs-conseil"></p>
+        </div>
+        <div class="formula" id="rs-formula"></div>
+        <div class="result-warn" id="rs-warn" style="display:none"></div>
+      </div>
+    </div>
+
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════════════
+       PANEL 5 — RÉSIDENTIEL & SOLAIRE
+  ══════════════════════════════════════════════════════════ -->
+  <div class="panel" id="panel-residentiel">
+
+    <div class="calc-card">
+      <div class="card-title">
+        <span class="icon">🏠</span>
+        <div>
+          <h2>Batterie résidentielle &amp; solaire</h2>
+          <p>Autoconsommation, backup, dimensionnement PV — Bluetti EP760 &amp; EP2000</p>
+        </div>
+      </div>
+
+      <!-- CONSOMMATION -->
+      <div class="b-section">
+        <div class="b-section-title">⚡ Consommation &amp; installation électrique</div>
+        <div class="frow frow-2">
+          <div class="fgroup">
+            <span class="flabel">Consommation mensuelle (kWh/mois)</span>
+            <input type="number" id="r-month" placeholder="ex: 350" min="30" max="3000" value="">
+            <div class="unit-hint">Foyer moyen France : 300–450 kWh/mois</div>
+          </div>
+          <div class="fgroup">
+            <span class="flabel">Type de logement</span>
+            <select id="r-logement">
+              <option value="appt">Appartement</option>
+              <option value="maison-petite">Maison &lt; 100 m²</option>
+              <option value="maison-moyenne" selected>Maison 100–150 m²</option>
+              <option value="maison-grande">Maison &gt; 150 m²</option>
+            </select>
+          </div>
+        </div>
+        <div class="fgroup">
+          <span class="flabel">Type d'alimentation électrique du logement</span>
+          <div class="seg-group" id="seg-phase">
+            <button class="seg-btn active" data-val="mono">⚡ Monophasé — 230V (majoritaire en France)</button>
+            <button class="seg-btn" data-val="tri">⚡⚡⚡ Triphasé — 400V (maisons, villas, fermes)</button>
+          </div>
+          <div class="unit-hint">Vérifiez votre disjoncteur principal ou compteur Linky. Monophasé = 1 fil de phase · Triphasé = 3 fils de phase</div>
+        </div>
+      </div>
+
+      <!-- INSTALLATION SOLAIRE -->
+      <div class="b-section">
+        <div class="b-section-title">☀️ Installation solaire existante</div>
+        <div class="frow frow-2">
+          <div class="fgroup">
+            <span class="flabel">Puissance panneaux installés (Wc)</span>
+            <input type="number" id="r-solar-wc" placeholder="0 si aucun" min="0" max="20000" value="0">
+            <div class="unit-hint">Résidentiel typique : 3 000 – 9 000 Wc</div>
+          </div>
+          <div class="fgroup">
+            <span class="flabel">Zone / Ensoleillement</span>
+            <select id="r-sun">
+              <option value="2.8">Nord de France / Paris (2,8h/j)</option>
+              <option value="3.3">Centre / Bretagne / Normandie (3,3h/j)</option>
+              <option value="3.8" selected>Rhône-Alpes / Alsace (3,8h/j)</option>
+              <option value="4.5">Sud-Ouest / Toulouse (4,5h/j)</option>
+              <option value="5.0">PACA / Languedoc (5,0h/j)</option>
+              <option value="5.5">DOM-TOM / Corse (5,5h/j)</option>
+            </select>
+          </div>
+        </div>
+        <div class="fgroup">
+          <span class="flabel">Taux de couverture solaire visé (% conso. annuelle)</span>
+          <div class="seg-group" id="seg-coverage">
+            <button class="seg-btn" data-val="0">Pas d'ajout</button>
+            <button class="seg-btn" data-val="60">60 %</button>
+            <button class="seg-btn active" data-val="70">70 %</button>
+            <button class="seg-btn" data-val="80">80 %</button>
+            <button class="seg-btn" data-val="90">90 %</button>
+            <button class="seg-btn" data-val="100">100 %</button>
+          </div>
+          <div class="unit-hint">Part de votre consommation annuelle couverte par la production solaire (directe + stockée)</div>
+        </div>
+      </div>
+
+      <!-- OBJECTIFS -->
+      <div class="b-section">
+        <div class="b-section-title">🎯 Objectif principal</div>
+        <div class="r-obj-grid">
+          <div class="r-obj-card active" data-val="selfcons" onclick="selectObj(this)">
+            <div style="font-size:20px;margin-bottom:6px">🔄</div>
+            Autoconsommation<br><span style="font-size:10px;color:var(--text3);font-weight:400">Stocker le surplus solaire</span>
+          </div>
+          <div class="r-obj-card" data-val="backup" onclick="selectObj(this)">
+            <div style="font-size:20px;margin-bottom:6px">🛡️</div>
+            Backup / Coupure<br><span style="font-size:10px;color:var(--text3);font-weight:400">Autonomie lors des pannes</span>
+          </div>
+          <div class="r-obj-card" data-val="both" onclick="selectObj(this)">
+            <div style="font-size:20px;margin-bottom:6px">⚡</div>
+            Les deux<br><span style="font-size:10px;color:var(--text3);font-weight:400">Autoconso + sécurité</span>
+          </div>
+        </div>
+        <div class="fgroup" id="r-backup-group" style="margin-top:10px;display:none">
+          <span class="flabel">Autonomie souhaitée en cas de coupure</span>
+          <select id="r-autonomy">
+            <option value="4">4 heures (appareils essentiels)</option>
+            <option value="8">8 heures</option>
+            <option value="24" selected>24 heures (1 journée)</option>
+            <option value="48">48 heures (week-end)</option>
+            <option value="72">72 heures (3 jours)</option>
+          </select>
+        </div>
+      </div>
+
+      <button class="btn-calc" onclick="calcResidentiel()">🏠 Calculer mon installation</button>
+
+      <div class="result-box" id="res-residentiel">
+        <div class="result-title">✅ Recommandation résidentielle</div>
+        <div class="result-grid">
+          <div class="result-item">
+            <div class="rv" id="rr-day">—</div>
+            <div class="rl">Conso. journalière</div>
+          </div>
+          <div class="result-item">
+            <div class="rv" id="rr-solar">—</div>
+            <div class="rl">Production solaire/jour</div>
+          </div>
+          <div class="result-item">
+            <div class="rv" id="rr-selfrate">—</div>
+            <div class="rl">Taux d'autosuffisance</div>
+          </div>
+          <div class="result-item">
+            <div class="rv" id="rr-need">—</div>
+            <div class="rl">Capacité batterie utile</div>
+          </div>
+          <div class="result-item" id="rr-panels-row" style="display:none">
+            <div class="rv" id="rr-panels">—</div>
+            <div class="rl" id="rr-panels-label">Panneaux à ajouter</div>
+          </div>
+          <div class="result-item green">
+            <div class="rv" id="rr-savings">—</div>
+            <div class="rl">Économies estimées</div>
+          </div>
+        </div>
+        <div id="rr-models" style="margin-top:12px"></div>
+        <div class="savings-box" id="rr-note" style="display:none"></div>
+        <div class="result-warn" id="rr-warn" style="display:none"></div>
+        <div style="font-size:9px;color:var(--text3);margin-top:8px;line-height:1.5">* Estimation basée sur un prix moyen de l'électricité de 0,25 €/kWh (TRV France 2025). Résultats indicatifs — contactez AZ Energy pour une étude personnalisée.</div>
+      </div>
+    </div>
+
+  </div>
+
+</div><!-- /main -->
+
+<script>
+// ─────────────────────────────────────────────────────────────────────────────
+// UTILS
+// ─────────────────────────────────────────────────────────────────────────────
+function segGroup(id) {
+  document.querySelectorAll('#' + id + ' .seg-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('#' + id + ' .seg-btn').forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+    });
+  });
+}
+function getSegVal(id) {
+  const active = document.querySelector('#' + id + ' .seg-btn.active');
+  return active ? active.dataset.val : null;
+}
+function showResult(id) {
+  const el = document.getElementById(id);
+  el.classList.add('visible');
+  el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+function techBadge(t) {
+  const map = {SLI:'badge-SLI',EFB:'badge-EFB',AGM:'badge-AGM',GEL:'badge-GEL',LITHIUM:'badge-LITHIUM'};
+  const cls = map[t.toUpperCase()] || 'badge-SLI';
+  return `<span class="result-badge ${cls}">${t}</span>`;
+}
+function fmt(n) { return Math.ceil(n).toLocaleString('fr-FR'); }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TAB SWITCHING
+// ─────────────────────────────────────────────────────────────────────────────
+function switchTab(name, btn) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CALC 1 — VÉHICULE
+// ─────────────────────────────────────────────────────────────────────────────
+function calcVehicule() {
+  const vtype = getSegVal('seg-vtype');
+  const motor = document.getElementById('v-motor').value;
+  const cylRaw = parseFloat(document.getElementById('v-cyl').value) || 0;
+  const cold   = document.getElementById('v-cold').value;
+  const elec   = document.getElementById('v-elec').value;
+  const age    = getSegVal('seg-age');
+
+  // ── Facteur moteur ──
+  const isStopStart = motor.includes('ss') || motor.includes('hybrid');
+  const isDiesel    = motor.includes('diesel');
+  const isElec      = motor === 'electrique';
+  const isMoto      = vtype === 'moto';
+  const isMarine    = vtype === 'marine';
+  const isPL        = vtype === 'pl';
+
+  let cyl = cylRaw;
+  if (isElec) cyl = 0;
+  if (isMoto && cyl === 0) cyl = 600;
+
+  // Base CCA = displacement-based formula
+  let ccaBase;
+  if (isElec) {
+    ccaBase = 300; // batterie 12V auxiliaire VE
+  } else if (isMoto) {
+    // Moto/scooter : 0.20 × cc, min 80A EN
+    ccaBase = Math.max(80, cyl * 0.20);
+  } else if (isPL) {
+    // PL : par batterie 12V (2 en parallèle sur PL)
+    ccaBase = Math.min(1500, Math.max(800, cyl * 0.10));
+  } else {
+    // Formule EN standard : essence ≈ 0.24 × cc, diesel ≈ 0.26 × cc
+    const factor = isDiesel ? 0.26 : 0.24;
+    ccaBase = cyl * factor;
+  }
+
+  // Cold factor
+  const coldFactor = { normal: 1.0, froid: 1.15, extreme: 1.35 }[cold] || 1.0;
+  // Age factor
+  const ageFactor  = { neuf: 1.0, normal: 1.1, 'usé': 1.2 }[age] || 1.0;
+  // Electronics factor
+  const elecFactor = { standard: 1.0, elevee: 1.1, 'tres-elevee': 1.2 }[elec] || 1.0;
+
+  let cca = Math.ceil(ccaBase * coldFactor * ageFactor * elecFactor / 10) * 10;
+
+  // Round to standard CCA values
+  const ccaStd = [100,120,150,170,190,200,220,240,280,300,330,350,380,400,420,450,480,500,520,560,600,680,700,720,760,800,850,900,950,1000,1050,1100,1200,1300,1400,1500];
+  let ccaReco = ccaStd.find(v => v >= cca) || cca;
+
+  // Capacité Ah — calcul direct par cylindrée (indépendant du CCA)
+  let ahBase;
+  if (isElec) {
+    ahBase = 50;
+  } else if (isMoto) {
+    ahBase = Math.max(8, cyl * 0.025);    // ex: 600cc→15Ah, 1000cc→25Ah
+  } else if (isPL) {
+    ahBase = Math.min(225, Math.max(180, cyl * 0.015));  // par batterie
+  } else {
+    // Essence : ≈ cc/26 | Diesel : ≈ cc/29
+    const ahFactor = isDiesel ? 0.034 : 0.038;
+    ahBase = Math.max(44, cyl * ahFactor);
+  }
+  // Correctifs secondaires (Ah monte moins vite que CCA)
+  const ahAgeFactor  = { neuf:1.0, normal:1.05, 'usé':1.10 }[age]  || 1.0;
+  const ahElecFactor = { standard:1.0, elevee:1.10, 'tres-elevee':1.20 }[elec] || 1.0;
+  const ahColdFactor = { normal:1.0, froid:1.05, extreme:1.10 }[cold]  || 1.0;
+  let ah = Math.ceil(ahBase * ahAgeFactor * ahElecFactor * ahColdFactor / 5) * 5;
+
+  // Technology
+  let techno, conseil, warn = '';
+  if (isElec) {
+    techno = 'AGM';
+    conseil = 'Sur les véhicules électriques, la batterie 12V auxiliaire est généralement une AGM. Elle alimente le CAN bus, les systèmes de sécurité et l\'électronique. Vérifiez les spécifications constructeur pour la capacité exacte.';
+  } else if (isMoto) {
+    techno = 'AGM';
+    conseil = `L'AGM est systématiquement recommandée en moto/scooter : résistance aux vibrations, étanchéité (pas de dégazage en position inclinée), fiabilité au démarrage à froid et longévité supérieure à une batterie ouverte. Vérifiez le format (YTX, GTX, YT…) dans la fiche technique de votre véhicule.`;
+  } else if (isMarine) {
+    techno = 'AGM';
+    conseil = 'En application marine, l\'AGM ou le GEL s\'imposent pour leur résistance aux vibrations, leur sécurité (pas de dégazage) et leur polyvalence démarrage/service. Évitez les batteries SLI conventionnelles.';
+    if (elec !== 'standard') warn = '⚠️ Pour les bateaux avec forte consommation électronique (chartplotter, radio, VHF, AIS), envisagez un double parc : une batterie démarrage + une batterie service AGM/GEL.';
+  } else if (isStopStart || motor === 'hybrid') {
+    techno = age === 'neuf' ? 'AGM' : 'AGM';
+    conseil = 'Les véhicules Start-Stop EXIGENT une batterie EFB ou AGM. Une batterie SLI classique ne supportera pas les cycles répétés de coupure/redémarrage et se dégradera rapidement. L\'AGM est recommandée pour les véhicules récents avec récupération d\'énergie au freinage (SORA/REGEN).';
+  } else if (isDiesel) {
+    if (cca >= 680) { techno = 'AGM'; conseil = 'Diesel de forte cylindrée : l\'AGM offre la puissance de démarrage et la résistance thermique nécessaires, particulièrement avec boîte automatique ou équipement PTO.'; }
+    else { techno = 'SLI'; conseil = `Diesel standard : une batterie SLI ${ccaReco}A (EN) suffit dans des conditions normales. Préférez l'AGM en cas de démarrages fréquents ou de froid intense.`; }
+  } else {
+    if (isStopStart || elec === 'tres-elevee') { techno = 'AGM'; conseil = 'Forte sollicitation électronique : l\'AGM répond mieux aux décharges profondes et aux récupérations d\'énergie.'; }
+    else if (coldFactor > 1.1 || elecFactor > 1.0) { techno = 'EFB'; conseil = `EFB recommandée pour sa meilleure résistance aux cycles et sa capacité supérieure à la SLI classique. Idéal si vous démarrez souvent par temps froid.`; }
+    else { techno = 'SLI'; conseil = `Batterie SLI standard — bon rapport qualité/prix. Vérifiez la compatibilité des dimensions (format L0 à L6) et de la polarité (borne + à gauche ou droite).`; }
+  }
+
+  // Write results
+  document.getElementById('rv-cca').textContent = ccaReco + 'A';
+  document.getElementById('rv-ah').textContent  = ah + ' Ah';
+  document.getElementById('rv-techno').innerHTML = techBadge(techno) + (isStopStart ? ' ' + techBadge('EFB') : '');
+  document.getElementById('rv-conseil').textContent = conseil;
+  const warnEl = document.getElementById('rv-warn');
+  if (warn) { warnEl.textContent = warn; warnEl.style.display = 'block'; }
+  else warnEl.style.display = 'none';
+  showResult('res-vehicule');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CALC 2 — UPS / BACKUP
+// ─────────────────────────────────────────────────────────────────────────────
+function calcUPS() {
+  const volt   = parseFloat(document.getElementById('u-volt').value);
+  const power  = parseFloat(document.getElementById('u-power').value);
+  const time   = parseFloat(document.getElementById('u-time').value);
+  const techno = document.getElementById('u-techno').value;
+  const temp   = document.getElementById('u-temp').value;
+  const ageFac = parseFloat(document.getElementById('u-age').value);
+  const crit   = document.getElementById('u-crit').value;
+
+  if (!power || !time) { alert('Veuillez saisir la puissance et l\'autonomie souhaitée.'); return; }
+
+  // DOD limits by technology
+  const dodMap = { agm: 0.80, gel: 0.75, opzs: 0.80, lithium: 0.90 };
+  const effMap = { agm: 0.85, gel: 0.87, opzs: 0.90, lithium: 0.96 };
+  const dod = dodMap[techno];
+  const eff = effMap[techno];
+
+  // Temperature derating (Peukert simplified)
+  const tempFactor = { cold: 1.25, normal: 1.0, warm: 0.95, hot: 0.85 }[temp] || 1.0;
+
+  // Safety margin
+  const margin = { high: 1.30, normal: 1.20, low: 1.10 }[crit] || 1.20;
+
+  // Peukert correction for short autonomy (< 1h draws more than C10)
+  const peukertFactor = time < 0.5 ? 1.25 : time < 1 ? 1.15 : time < 2 ? 1.08 : 1.0;
+
+  // Core formula: Ah = (P × T) / (V × eff × dod)
+  const ahRaw = (power * time) / (volt * eff * dod);
+  const ahNeeded = ahRaw * tempFactor * ageFac * peukertFactor * margin;
+  const ahFinal = Math.ceil(ahNeeded / 5) * 5;
+  const whTotal = Math.round(ahFinal * volt);
+
+  // Batteries needed (100Ah standard)
+  const nb100ah = Math.ceil(ahFinal / 100);
+
+  // Series/Parallel config
+  let config = '';
+  const techLabel = { agm: 'AGM VRLA', gel: 'GEL', opzs: 'OPzS', lithium: 'Li-FePO₄' }[techno];
+  if (volt <= 12) {
+    config = nb100ah + ' × 12V/100Ah en parallèle';
+  } else {
+    const serie = Math.round(volt / 12);
+    config = serie + 'S × ' + Math.ceil(ahFinal / 100) + 'P — ' + (serie * Math.ceil(ahFinal/100)) + ' élements';
+  }
+
+  // Conseil
+  let conseil = '';
+  if (techno === 'lithium') {
+    conseil = `Lithium LFP : densité énergétique optimale, durée de vie 2000+ cycles, BMS intégré obligatoire. Idéal si l'encombrement est critique ou si les cycles sont fréquents (> 200/an).`;
+  } else if (techno === 'opzs') {
+    conseil = `OPzS tubulaire : technologie de référence pour les grandes capacités (> 200Ah). Durée de vie 15–20 ans en floating. Nécessite une ventilation (dégazage) et un entretien (niveaux d'électrolyte).`;
+  } else if (time >= 4) {
+    conseil = `Pour des autonomies longues (≥ 4h), le GEL ou l'OPzS est préférable à l'AGM standard pour sa meilleure résistance aux décharges profondes répétées.`;
+  } else {
+    conseil = `AGM VRLA étanche, sans entretien — solution standard pour UPS et armoires de télécommunication. Durée de vie 3–5 ans en floating (tampon) à 20°C, nettement réduite à haute température.`;
+  }
+
+  // Write
+  document.getElementById('ru-ah').textContent   = fmt(ahFinal) + ' Ah';
+  document.getElementById('ru-wh').textContent   = fmt(whTotal) + ' Wh';
+  document.getElementById('ru-nb').textContent   = nb100ah + ' bat.';
+  document.getElementById('ru-config').textContent = config.split('—')[0].trim();
+  document.getElementById('ru-conseil').textContent = conseil;
+  document.getElementById('ru-formula').textContent =
+    `Formule : Ah = (P × T) / (V × η × DOD) × T°coeff × Kvieillissement × Kmarge\n` +
+    `= (${power}W × ${time}h) / (${volt}V × ${eff} × ${dod}) × ${tempFactor} × ${ageFac} × ${margin}\n` +
+    `≈ ${ahFinal} Ah`;
+  const warnEl = document.getElementById('ru-warn');
+  if (tempFactor > 1.1) { warnEl.style.display='block'; warnEl.textContent='⚠️ En dessous de 0°C, la capacité réelle peut être réduite de 30 à 50%. Surdimensionnez si la batterie est exposée au gel.'; }
+  else warnEl.style.display='none';
+  showResult('res-ups');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CALC 3 — BLUETTI
+// ─────────────────────────────────────────────────────────────────────────────
+const BLUETTI_MODELS = [
+  { name:'EB3A',    cap:268,  maxPower:600,   weight:4.6,  solar:200,  expandable:false, price:'~250€' },
+  { name:'EB55',   cap:537,  maxPower:700,   weight:7.5,  solar:200,  expandable:false, price:'~450€' },
+  { name:'EB70S',  cap:716,  maxPower:1000,  weight:10.1, solar:200,  expandable:false, price:'~600€' },
+  { name:'AC180',  cap:1152, maxPower:1800,  weight:16,   solar:500,  expandable:false, price:'~900€' },
+  { name:'AC200MAX', cap:2048, maxPower:2200, weight:28.1, solar:900,  expandable:true,  maxCap:8192,  price:'~1 600€' },
+  { name:'AC300',  cap:0,    maxPower:3000,  weight:28,   solar:2400, expandable:true,  maxCap:12288, price:'~2 000€ + bat.', note:'Nécessite batterie B300 (3072Wh)' },
+  { name:'AC500',  cap:0,    maxPower:5000,  weight:37.5, solar:3000, expandable:true,  maxCap:18432, price:'~3 500€ + bat.', note:'Nécessite batterie B300S' },
+  { name:'EP500Pro', cap:5120, maxPower:3000, weight:84,   solar:2400, expandable:false, price:'~4 500€' },
+];
+
+const DEVICE_LIST = [];
+
+function addDevice() {
+  const name  = document.getElementById('d-name').value.trim() || 'Appareil';
+  const power = parseFloat(document.getElementById('d-power').value);
+  const hours = parseFloat(document.getElementById('d-hours').value);
+  if (!power || !hours) { alert('Veuillez saisir la puissance (W) et la durée (h/jour).'); return; }
+  DEVICE_LIST.push({ name, power, hours });
+  document.getElementById('d-name').value = '';
+  document.getElementById('d-power').value = '';
+  document.getElementById('d-hours').value = '';
+  renderDevices();
+}
+
+function removeDevice(i) {
+  DEVICE_LIST.splice(i, 1);
+  renderDevices();
+}
+
+function renderDevices() {
+  const list = document.getElementById('device-list');
+  const totalEl = document.getElementById('device-total');
+  if (!DEVICE_LIST.length) { list.innerHTML = ''; totalEl.style.display = 'none'; return; }
+  let total = 0;
+  list.innerHTML = DEVICE_LIST.map((d, i) => {
+    const wh = d.power * d.hours;
+    total += wh;
+    return `<div class="device-row">
+      <span style="flex:1;font-size:13px;color:var(--text)">${d.name}</span>
+      <span class="d-sep">${d.power}W × ${d.hours}h</span>
+      <span class="d-wh">${wh.toFixed(0)} Wh</span>
+      <button class="btn-sm red" onclick="removeDevice(${i})" style="padding:4px 9px;font-size:11px">✕</button>
+    </div>`;
+  }).join('');
+  totalEl.style.display = 'flex';
+  document.getElementById('d-total-wh').textContent = total.toFixed(0) + ' Wh';
+  document.getElementById('b-wh').value = total.toFixed(0);
+}
+
+function syncBluettiWh() {}
+
+function calcBluetti() {
+  let whDay = parseFloat(document.getElementById('b-wh').value);
+  const peakW = parseFloat(document.getElementById('b-peak').value) || 0;
+  const days  = parseFloat(document.getElementById('b-days').value);
+  const solarW = parseFloat(document.getElementById('b-solar').value);
+
+  if (!whDay) { alert('Veuillez saisir votre consommation quotidienne (Wh/jour).'); return; }
+
+  // Total needed: days × daily + 20% marge
+  const whNeeded = Math.ceil(whDay * days * 1.2);
+
+  // Solar recharge time
+  const sunHours = 4; // average
+  const solarWh = solarW * sunHours;
+  let solarTimeStr = solarW ? ((whDay / Math.max(solarWh, 1)) * sunHours).toFixed(1) + 'h/jour de soleil' : 'Sans solaire';
+
+  // Filter models
+  const models = BLUETTI_MODELS.map(m => {
+    const cap = m.cap || 3072; // for expandable without base cap, use B300
+    const fits = cap >= whNeeded && (peakW === 0 || m.maxPower >= peakW);
+    const tooSmall = cap < whNeeded;
+    const powerTooLow = peakW > 0 && m.maxPower < peakW;
+    let ratio = Math.min(cap / whNeeded, 1);
+    return { ...m, fits, tooSmall, powerTooLow, ratio, effectiveCap: cap };
+  });
+
+  const sorted = [...models].sort((a, b) => {
+    if (a.fits && !b.fits) return -1;
+    if (!a.fits && b.fits) return 1;
+    return a.effectiveCap - b.effectiveCap;
+  });
+
+  const firstFit = sorted.find(m => m.fits);
+
+  document.getElementById('rb-need').textContent  = fmt(whNeeded) + ' Wh';
+  document.getElementById('rb-solar-time').textContent = solarTimeStr;
+
+  const container = document.getElementById('rb-models');
+  container.innerHTML = '<div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;font-weight:700;margin-bottom:8px">Modèles compatibles</div>';
+
+  sorted.slice(0, 5).forEach(m => {
+    const isReco = firstFit && m.name === firstFit.name;
+    const cls = m.tooSmall || m.powerTooLow ? 'too-small' : (isReco ? 'recommended' : '');
+    const capDisp = m.cap ? m.cap + ' Wh' : (m.note || 'extensible');
+    const bar = Math.round(m.ratio * 100);
+    let status = m.tooSmall ? '❌ Capacité insuffisante' : (m.powerTooLow ? '⚠️ Puissance insuffisante' : (isReco ? '⭐ Recommandé' : '✅ Compatible'));
+    container.innerHTML += `
+      <div class="bluetti-card ${cls}">
+        <div class="bluetti-top">
+          <div>
+            <div class="bluetti-name">${m.name} ${isReco ? '<span class="bluetti-badge-reco">RECOMMANDÉ</span>' : ''}</div>
+            <div class="bluetti-cap">${capDisp} — ${m.maxPower}W max — ${m.price}</div>
+          </div>
+        </div>
+        <div class="bluetti-specs">
+          <span class="bspec">${m.weight}kg</span>
+          <span class="bspec">⚡ ${m.maxPower}W</span>
+          ${m.solar ? `<span class="bspec">☀️ ${m.solar}W solar</span>` : ''}
+          ${m.expandable ? `<span class="bspec">🔋 Extensible ${m.maxCap}Wh</span>` : ''}
+          ${m.note ? `<span class="bspec">ℹ️ ${m.note}</span>` : ''}
+          <span class="bspec" style="color:${m.tooSmall||m.powerTooLow?'var(--red)':isReco?'var(--gold)':'var(--green)'}">${status}</span>
+        </div>
+        <div class="bluetti-bar"><div class="bluetti-bar-fill" style="width:${bar}%"></div></div>
+      </div>`;
+  });
+
+  const tipEl = document.getElementById('rb-tip');
+  if (solarW && firstFit) {
+    tipEl.style.display = 'block';
+    tipEl.textContent = `ℹ️ Avec ${solarW}W de panneaux solaires et ${sunHours}h d'ensoleillement/jour, vous produirez ~${solarWh} Wh/jour. La recharge complète de la station (${firstFit.effectiveCap} Wh) prendra environ ${(firstFit.effectiveCap / Math.max(solarWh, 1) * sunHours).toFixed(1)}h de soleil cumulées.`;
+  } else {
+    tipEl.style.display = 'none';
+  }
+
+  showResult('res-bluetti');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CALC 4 — SOLAIRE
+// ─────────────────────────────────────────────────────────────────────────────
+function calcSolaire() {
+  const volt   = parseFloat(document.getElementById('s-volt').value);
+  const whDay  = parseFloat(document.getElementById('s-wh').value);
+  const days   = parseFloat(document.getElementById('s-days').value);
+  const techno = document.getElementById('s-techno').value;
+  const sun    = parseFloat(document.getElementById('s-sun').value);
+  const panelW = parseFloat(document.getElementById('s-panel-input').value) || 0;
+
+  if (!whDay) { alert('Veuillez saisir votre consommation journalière (Wh).'); return; }
+
+  // DOD by techno
+  const dodMap = { agm: 0.50, gel: 0.65, opzs: 0.80, lithium: 0.90 };
+  const dod = dodMap[techno];
+  const efficiency = 0.88; // battery efficiency
+
+  // Required capacity
+  const whRequired = whDay * days;
+  const whBattery  = whRequired / (dod * efficiency);
+  const ahNeeded   = Math.ceil((whBattery / volt) / 10) * 10;
+
+  // Solar panel sizing: P = daily Wh / (sun_hours × efficiency)
+  const solarEff  = 0.80; // MPPT losses, wire, temperature
+  const panelCalc = Math.ceil((whDay / (sun * solarEff)) / 50) * 50;
+
+  // Recharge time with current panels
+  const rechargeTime = panelW > 0
+    ? (whBattery / (panelW * solarEff * sun) * sun).toFixed(1) + 'h ens./jour'
+    : '—';
+
+  // Configuration
+  const techLabel = { agm:'AGM', gel:'GEL', opzs:'OPzS tubulaire', lithium:'Li-FePO₄' }[techno];
+  const nbBat100 = Math.ceil(ahNeeded / 100);
+  const nbBat200 = Math.ceil(ahNeeded / 200);
+  let conseil = '';
+  if (techno === 'lithium') {
+    conseil = `Li-FePO₄ : ${ahNeeded}Ah soit ~${nbBat100} × 100Ah 12V (${volt > 12 ? 'en série pour ' + volt + 'V' : 'en parallèle'}). Avec BMS, durée de vie 2000+ cycles. Idéal pour camping-car et bateaux modernes.`;
+  } else if (techno === 'opzs') {
+    conseil = `OPzS tubulaire 2V : ${ahNeeded}Ah à ${volt}V = ${volt / 2} éléments de ${ahNeeded}Ah. Excellent choix pour installation fixe (cabane, off-grid). Durée de vie 15–20 ans si bien maintenu.`;
+  } else {
+    conseil = `${techLabel} : ${ahNeeded}Ah à ${volt}V — soit ${nbBat100} × 100Ah ou ${nbBat200} × 200Ah. Régulateur MPPT recommandé pour maximiser la charge (gain 30% vs régulateur PWM).`;
+  }
+
+  // Write
+  document.getElementById('rs-ah').textContent     = fmt(ahNeeded) + ' Ah';
+  document.getElementById('rs-wh').textContent     = fmt(whRequired) + ' Wh';
+  document.getElementById('rs-panel').textContent  = fmt(panelCalc) + ' W';
+  document.getElementById('rs-recharge').textContent = rechargeTime;
+  document.getElementById('rs-conseil').textContent = conseil;
+  document.getElementById('rs-formula').textContent =
+    `Ah = (Wh/jour × jours) / (V × DOD × η)\n` +
+    `= (${whDay}Wh × ${days}j) / (${volt}V × ${dod} × ${efficiency})\n` +
+    `≈ ${ahNeeded} Ah\n\n` +
+    `Panneaux = Wh/jour / (heures soleil × η_système)\n` +
+    `= ${whDay}Wh / (${sun}h × ${solarEff}) ≈ ${panelCalc}W`;
+
+  const warnEl = document.getElementById('rs-warn');
+  if (dod < 0.7) {
+    warnEl.style.display = 'block';
+    warnEl.textContent = `⚠️ En technologie ${techLabel}, limitez la décharge à ${Math.round(dod*100)}% pour maximiser la durée de vie. Un BMS ou régulateur avec protection basse tension est recommandé.`;
+  } else warnEl.style.display = 'none';
+  showResult('res-solaire');
+}
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CALC 5 — RÉSIDENTIEL & SOLAIRE (Bluetti EP760 / EP2000)
+// ─────────────────────────────────────────────────────────────────────────────
+// Specs vérifiées : EP760 = monophasé 230V, EP2000 = triphasé 400V
+// EP760 : 2–4 × B500 (4 960 Wh/pack), entrée solaire 9 000 W max
+// EP2000 : 2–7 × B700 (7 373 Wh/pack), entrée solaire 30 000 W max, requiert module HV800
+const BLUETTI_HOME = {
+  mono: {
+    name: 'EP760',
+    phase: 'mono',
+    phaseLabel: 'Monophasé 230V',
+    powerAC: 7600,
+    solarIn: 9000,
+    battName: 'B500',
+    battWh: 4960,
+    battMin: 2,
+    battMax: 4,
+    priceUnit: 4490,
+    priceBatt: 1990,
+    weightUnit: 44,
+    weightBatt: 49,
+    requiresModule: false,
+    note: "Station monophasée 230V — maison individuelle avec autoconsommation solaire jusqu'à 9 kWc"
+  },
+  tri: {
+    name: 'EP2000',
+    phase: 'tri',
+    phaseLabel: 'Triphasé 400V',
+    powerAC: 20000,
+    solarIn: 30000,
+    battName: 'B700',
+    battWh: 7373,
+    battMin: 2,
+    battMax: 7,
+    priceUnit: 8990,
+    priceBatt: 2490,
+    weightUnit: 116,
+    weightBatt: 84,
+    requiresModule: true,
+    modulePrice: 990,
+    moduleNote: "Requiert le module HV800 (~990 €) pour connecter les batteries B700",
+    note: "Station triphasée 230/400V — grande maison, villa ou exploitation — jusqu'à 51,6 kWh et 30 kWc"
+  }
+};
+
+let selectedObj = 'selfcons';
+
+function selectObj(el) {
+  document.querySelectorAll('.r-obj-card').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  selectedObj = el.dataset.val;
+  document.getElementById('r-backup-group').style.display =
+    (selectedObj === 'backup' || selectedObj === 'both') ? 'block' : 'none';
+}
+
+function calcResidentiel() {
+  const monthKwh    = parseFloat(document.getElementById('r-month').value);
+  const solarWc     = parseFloat(document.getElementById('r-solar-wc').value) || 0;
+  const sunH        = parseFloat(document.getElementById('r-sun').value);
+  const autonomy    = parseFloat(document.getElementById('r-autonomy').value) || 24;
+  const phase       = getSegVal('seg-phase') || 'mono';
+  const coveragePct = parseInt(getSegVal('seg-coverage') || '70', 10);
+
+  if (!monthKwh || monthKwh < 30) { alert('Veuillez saisir votre consommation mensuelle (kWh/mois).'); return; }
+
+  const model  = BLUETTI_HOME[phase];
+  const dayKwh = monthKwh / 30.5;
+
+  // ── Production solaire existante ──
+  const sysEff      = 0.80; // pertes onduleur, câblage, ombrage
+  const solarDayKwh = solarWc > 0 ? (solarWc * sunH * sysEff / 1000) : 0;
+
+  // Répartition : 40% conso le jour (autoconso directe), 60% soir/nuit (via batterie)
+  const dayShare   = 0.40;
+  const nightShare = 0.60;
+
+  const directUse   = Math.min(solarDayKwh * 0.55, dayKwh * dayShare);
+  const excessSolar = Math.max(0, solarDayKwh - directUse);
+
+  // ── Besoin batterie ──
+  const nightNeed_kWh    = dayKwh * nightShare;
+  const battSelfCons_Wh  = Math.min(excessSolar, nightNeed_kWh) * 1000;
+  const avgPower_W       = (dayKwh * 1000) / 24;
+  const battBackup_Wh    = avgPower_W * autonomy * 1.25;
+
+  let requiredWh;
+  if (selectedObj === 'selfcons')     requiredWh = battSelfCons_Wh * 1.20;
+  else if (selectedObj === 'backup')  requiredWh = battBackup_Wh;
+  else                                requiredWh = Math.max(battSelfCons_Wh * 1.20, battBackup_Wh);
+  requiredWh = Math.max(500, requiredWh);
+
+  // ── Taux d'autosuffisance actuel ──
+  let selfRate = 0;
+  if (solarWc > 0) {
+    const totalUsedFromSolar = directUse + Math.min(excessSolar, requiredWh / 1000);
+    selfRate = Math.min(100, Math.round(totalUsedFromSolar / dayKwh * 100));
+  }
+
+  // ── Panneaux à ajouter pour atteindre le taux de couverture visé ──
+  let panelRecoWc = 0;
+  let coverageNote = '';
+  if (coveragePct > 0) {
+    const targetCoverage  = coveragePct / 100;
+    const currentCoverage = solarWc > 0 ? Math.min(0.95, solarDayKwh / dayKwh) : 0;
+    if (currentCoverage >= targetCoverage) {
+      const pct = Math.round(currentCoverage * 100);
+      coverageNote = "\u2705 Votre installation actuelle (" + solarWc + " Wc) couvre d\u00e9j\u00e0 " + pct + "% de votre consommation, objectif atteint !";
+    } else {
+      const wantedKwh = dayKwh * (targetCoverage - currentCoverage);
+      panelRecoWc = Math.ceil((wantedKwh / (sunH * sysEff)) * 1000 / 500) * 500;
+      // Vérifier la limite d'entrée solaire du modèle sélectionné
+      const totalSolarWc = solarWc + panelRecoWc;
+      if (totalSolarWc > model.solarIn) {
+        panelRecoWc = Math.max(0, model.solarIn - solarWc);
+        const achievableKwh  = (solarWc + panelRecoWc) * sunH * sysEff / 1000;
+        const achievablePct  = Math.round(Math.min(0.95, achievableKwh / dayKwh) * 100);
+        coverageNote = "\u26a0\ufe0f L\u2019entr\u00e9e solaire max de l\u2019" + model.name + " est de " + (model.solarIn / 1000).toFixed(0) + " kWc. Taux de " + coveragePct + "% non atteignable sur ce mod\u00e8le — maximum r\u00e9aliste\u00a0: " + achievablePct + "%.";
+      }
+    }
+  }
+
+  // ── Nombre de batteries nécessaires ──
+  let battNeeded = model.battMin;
+  while (battNeeded < model.battMax && battNeeded * model.battWh < requiredWh) {
+    battNeeded++;
+  }
+  const configWh     = battNeeded * model.battWh;
+  const modulePrice  = model.requiresModule ? (model.modulePrice || 990) : 0;
+  const configPrice  = model.priceUnit + battNeeded * model.priceBatt + modulePrice;
+  const configWeight = model.weightUnit + battNeeded * model.weightBatt;
+  const isFit        = configWh >= requiredWh;
+
+  // ── Économies estimées ──
+  const priceKwh   = 0.25;
+  let annualSavings = 0;
+  const totalSolarWc = solarWc + panelRecoWc;
+  if (totalSolarWc > 0) {
+    const projSolarKwh  = totalSolarWc * sunH * sysEff / 1000;
+    const projDirect    = Math.min(projSolarKwh * 0.55, dayKwh * dayShare);
+    const projExcess    = Math.max(0, projSolarKwh - projDirect);
+    const projStored    = Math.min(projExcess, configWh / 1000);
+    annualSavings       = Math.round((projDirect + projStored) * 365 * priceKwh);
+  }
+
+  // ── Affichage résumé ──
+  document.getElementById('rr-day').textContent      = dayKwh.toFixed(1) + ' kWh/j';
+  document.getElementById('rr-solar').textContent    = solarWc > 0 ? solarDayKwh.toFixed(1) + ' kWh/j' : '\u2014';
+  document.getElementById('rr-selfrate').textContent = solarWc > 0 ? selfRate + ' %' : '\u2014';
+  document.getElementById('rr-need').textContent     = (requiredWh / 1000).toFixed(1) + ' kWh';
+  document.getElementById('rr-savings').textContent  = annualSavings > 0 ? annualSavings + ' \u20ac/an*' : '\u2014';
+
+  const panelsRow = document.getElementById('rr-panels-row');
+  if (panelRecoWc > 0) {
+    document.getElementById('rr-panels').textContent = (panelRecoWc / 1000).toFixed(1) + ' kWc \u00e0 ajouter';
+    panelsRow.style.display = 'flex';
+  } else {
+    panelsRow.style.display = 'none';
+  }
+
+  // ── Carte modèle Bluetti ──
+  const container = document.getElementById('rr-models');
+  const barW      = Math.min(100, Math.round(configWh / Math.max(requiredWh, 1) * 100));
+  const badgeHtml = isFit
+    ? '<span class="bh-badge">\u2b50 RECOMMAND\u00c9</span>'
+    : '<span class="bh-badge" style="background:var(--red);color:#fff">\u274c CAPACIT\u00c9 INSUFFISANTE</span>';
+  const priceStr  = configPrice.toLocaleString('fr-FR') + ' \u20ac';
+
+  let cardHtml = '<div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;font-weight:700;margin-bottom:8px">Produit recommand\u00e9 \u00b7 ' + model.phaseLabel + '</div>';
+  cardHtml += '<div class="bluetti-home-card ' + (isFit ? 'recommended' : 'too-small') + '">';
+  cardHtml += '<div class="bh-header"><div>';
+  cardHtml += '<div class="bh-name">' + model.name + ' + ' + battNeeded + '\u00d7' + model.battName + ' ' + badgeHtml + '</div>';
+  cardHtml += '<div class="bh-cap">' + (configWh / 1000).toFixed(1) + ' kWh \u00b7 ~' + priceStr + ' \u00b7 ' + configWeight + ' kg</div>';
+  cardHtml += '</div></div>';
+  cardHtml += '<div class="bh-specs">';
+  cardHtml += '<span class="bh-spec">\u26a1 ' + (model.powerAC / 1000).toFixed(0) + ' kW AC max</span>';
+  cardHtml += '<span class="bh-spec">\u2600\ufe0f ' + (model.solarIn / 1000).toFixed(0) + ' kWc entr\u00e9e solaire max</span>';
+  cardHtml += '<span class="bh-spec">\ud83d\udd0b ' + model.battMin + '\u2013' + model.battMax + '\u00d7' + model.battName + ' (' + (model.battWh / 1000).toFixed(2) + ' kWh/pack)</span>';
+  if (model.requiresModule) {
+    cardHtml += '<span class="bh-spec" style="color:var(--gold)">\u26a0\ufe0f ' + model.moduleNote + '</span>';
+  }
+  cardHtml += '</div>';
+  cardHtml += '<div style="font-size:11px;color:var(--text3);margin-top:6px">' + model.note + '</div>';
+  cardHtml += '<div class="bh-bar"><div class="bh-bar-fill" style="width:' + barW + '%"></div></div>';
+  cardHtml += '</div>';
+
+  if (battNeeded < model.battMax) {
+    const maxWh  = model.battMax * model.battWh;
+    const maxKwh = (maxWh / 1000).toFixed(0);
+    cardHtml += '<div style="font-size:10px;color:var(--text3);margin-top:8px;font-style:italic">';
+    cardHtml += '\ud83d\udd0b Extensible jusqu\u2019\u00e0 ' + model.battMax + '\u00d7' + model.battName + ' = ' + maxKwh + ' kWh pour une autonomie ou autoconsommation maximale';
+    cardHtml += '</div>';
+  }
+  container.innerHTML = cardHtml;
+
+  // ── Conseils ──
+  const noteEl = document.getElementById('rr-note');
+  let noteText = '';
+  if (coverageNote) {
+    noteText = coverageNote;
+  } else if (solarWc === 0 && coveragePct === 0) {
+    noteText = "\ud83d\udca1 Sans panneaux solaires, la batterie n\u2019est utile que pour le backup. S\u00e9lectionnez un taux de couverture solaire pour dimensionner l\u2019autoconsommation.";
+  } else if (selfRate > 70) {
+    noteText = "\u2705 Avec " + selfRate + "% d\u2019autosuffisance, votre installation est tr\u00e8s performante. L\u2019injection du surplus peut g\u00e9n\u00e9rer des revenus compl\u00e9mentaires (contrat EDF OA).";
+  } else if (solarWc > 0 && selfRate < 40) {
+    noteText = "\u26a0\ufe0f Taux d\u2019autosuffisance modeste. Envisagez d\u2019augmenter la capacit\u00e9 batterie ou la puissance solaire.";
+  }
+  if (noteText) { noteEl.textContent = noteText; noteEl.style.display = 'block'; }
+  else noteEl.style.display = 'none';
+
+  // ── Avertissement îlotage ──
+  const warnEl = document.getElementById('rr-warn');
+  if (selectedObj !== 'selfcons' && autonomy >= 48) {
+    warnEl.style.display = 'block';
+    warnEl.textContent = "\u26a0\ufe0f Pour " + autonomy + "h d\u2019autonomie, assurez-vous que votre installation est compatible \u00ab\u00a0\u00eelotage\u00a0\u00bb. Faire appel \u00e0 un \u00e9lectricien agr\u00e9\u00e9 obligatoire.";
+  } else warnEl.style.display = 'none';
+
+  showResult('res-residentiel');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────────────────────────────────────
+segGroup('seg-vtype');
+segGroup('seg-age');
+segGroup('seg-solar-app');
+segGroup('seg-phase');
+segGroup('seg-coverage');
+</script>
+<script src="_header.js"></script>
+</body>
+</html>
